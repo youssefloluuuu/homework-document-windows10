@@ -106,7 +106,43 @@ textarea.note{width:100%;height:100%;border:0;outline:0;resize:none;padding:12px
 #startMenu.w10-clean-start .w10-system-icon{width:31px!important;height:31px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;filter:drop-shadow(0 2px 2px #0009)!important}
 #startMenu.w10-clean-start .w10-system-icon svg,#startMenu.w10-clean-start .w10-system-icon img{width:31px!important;height:31px!important;object-fit:contain!important;display:block!important}
 #startMenu .startFooter,#startMenu .finalStartBottom,#startMenu .w10-final-power-row{display:none!important}
-</style></head>
+</style>
+<style id="w10-settings-real-css">
+.w10-settings-window{width:min(1180px,calc(100vw - 28px))!important;height:min(760px,calc(100vh - 70px))!important;min-width:760px!important;min-height:520px!important;overflow:hidden!important}
+.w10-settings-window .win-titlebar{display:none!important}
+.w10-settings{height:100%;width:100%;display:flex;background:#f7f7f7;color:#202020;font-family:"Segoe UI",Arial,sans-serif}
+.w10-settings-nav{width:300px;flex:0 0 300px;background:#f3f3f3;border-right:1px solid #ddd;display:flex;flex-direction:column;overflow:hidden}
+.w10-settings-brand{height:66px;display:flex;align-items:center;padding:0 18px;gap:13px;background:#fff;border-bottom:1px solid #e4e4e4}
+.w10-settings-title{font-size:22px;font-weight:400}.w10-settings-back{width:34px;height:34px;background:transparent;font-size:30px;line-height:30px;color:#333;cursor:pointer}.w10-settings-back:hover{background:#e6e6e6}
+.w10-settings-profile{height:76px;display:flex;align-items:center;gap:11px;padding:10px 15px;background:#fafafa;border-bottom:1px solid #ddd}.w10-settings-avatar,.w10-big-avatar{background:#0078d4;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center}.w10-settings-avatar{width:43px;height:43px;font-size:20px}.w10-settings-profile div:nth-child(2){display:flex;flex-direction:column;min-width:0}.w10-settings-profile strong{font-size:14px;font-weight:600}.w10-settings-profile span{font-size:12px;color:#666;margin-top:2px}.w10-settings-profile-btn{margin-left:auto;background:transparent;font-size:24px;color:#555;cursor:pointer}
+.w10-settings-search-wrap{margin:13px 14px 8px;height:36px;border:1px solid #a6a6a6;background:#fff;display:flex;align-items:center;padding:0 9px}.w10-settings-search-wrap span{font-size:21px;color:#666;margin-right:7px}.w10-settings-search-wrap input{width:100%;height:100%;border:0;outline:0;background:transparent;font-size:14px}
+.w10-settings-menu{overflow:auto;padding:2px 8px 20px}.w10-settings-menu button{width:100%;height:42px;border:0;background:transparent;display:flex;align-items:center;gap:14px;text-align:left;padding:0 13px;color:#333;font-size:14px;cursor:pointer;border-left:3px solid transparent}.w10-settings-menu button span{width:20px;text-align:center;font-size:18px;color:#444}.w10-settings-menu button:hover{background:#e5e5e5}.w10-settings-menu button.active{background:#e1e1e1;border-left-color:#0078d4;font-weight:600}.w10-settings-menu button.active span{color:#0078d4}
+.w10-settings-main{flex:1;overflow:auto;background:#fff}.w10-settings-main::-webkit-scrollbar,.w10-settings-menu::-webkit-scrollbar{width:10px}.w10-settings-main::-webkit-scrollbar-thumb,.w10-settings-menu::-webkit-scrollbar-thumb{background:#c7c7c7}
+#w10SettingsContent{max-width:850px;margin:0 auto;padding:34px 54px 70px}.w10-breadcrumb{font-size:12px;color:#777;margin-bottom:20px}.w10-breadcrumb span{padding:0 7px;color:#aaa}.w10-settings-main h1{font-size:30px;font-weight:400;margin:0 0 6px}.w10-sub{font-size:14px;color:#666;margin:0 0 28px;line-height:1.5}.w10-kicker{font-size:12px;letter-spacing:1.4px;color:#0078d4;font-weight:600;margin-bottom:5px}.w10-hero{display:flex;justify-content:space-between;align-items:center;margin-bottom:34px}.w10-hero h1{font-size:40px;margin:0}.w10-hero p{margin:7px 0 0;color:#666;font-size:15px}.w10-hero-mark{font-size:72px;color:#d9d9d9;font-weight:200}.w10-section-title{font-size:18px;margin:27px 0 12px;font-weight:400}.w10-settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.w10-setting-card{min-height:108px;background:#fff;border:1px solid #ddd;display:flex;align-items:center;text-align:left;padding:18px;gap:15px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.03)}.w10-setting-card:hover,.w10-list-card button:hover,.w10-link-list button:hover{background:#f3f3f3;border-color:#c9c9c9}.w10-setting-card b{font-size:30px;font-weight:400;color:#0078d4;width:34px;text-align:center}.w10-setting-card span,.w10-list-card span{display:flex;flex-direction:column;flex:1}.w10-setting-card strong,.w10-list-card strong{font-size:15px;font-weight:500}.w10-setting-card small,.w10-list-card small{font-size:12px;color:#666;margin-top:5px;line-height:1.35}.w10-setting-card i,.w10-list-card i,.w10-link-list button span{font-style:normal;font-size:24px;color:#777}.w10-list-card{border-top:1px solid #ddd;border-bottom:1px solid #ddd;background:#fff}.w10-list-card button{width:100%;min-height:74px;border:0;border-bottom:1px solid #e6e6e6;background:#fff;display:flex;align-items:center;text-align:left;padding:11px 10px;gap:15px;cursor:pointer}.w10-list-card button:last-child{border-bottom:0}.w10-list-card b{font-size:23px;font-weight:400;color:#0078d4;width:30px;text-align:center}.w10-link-list{border-top:1px solid #ddd}.w10-link-list button{width:100%;height:52px;border:0;border-bottom:1px solid #ddd;background:#fff;text-align:left;padding:0 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;color:#0067b8;font-size:14px}.w10-feature-card,.w10-detail-card,.w10-status-card,.w10-account-card,.w10-update-card,.w10-info-strip,.w10-toggle-card{border:1px solid #ddd;background:#fff;margin:0 0 18px;padding:20px;display:flex;align-items:center;gap:16px}.w10-feature-icon,.w10-detail-icon{width:50px;height:50px;display:flex;align-items:center;justify-content:center;background:#eaf4ff;color:#0078d4;font-size:27px;flex:0 0 50px}.w10-feature-card div:nth-child(2),.w10-detail-card div:nth-child(2),.w10-status-card div:nth-child(2),.w10-update-card div:nth-child(2){display:flex;flex-direction:column;flex:1}.w10-feature-card strong,.w10-detail-card strong,.w10-status-card strong,.w10-update-card strong{font-size:16px;font-weight:500}.w10-feature-card span,.w10-detail-card span,.w10-status-card span,.w10-update-card span,.w10-update-card small{font-size:13px;color:#666;margin-top:5px;line-height:1.4}.w10-blue-btn{background:#0078d4;color:#fff;padding:9px 18px;min-width:120px;cursor:pointer;font-size:13px}.w10-blue-btn:hover{background:#0067b8}.w10-status-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#e9f7ee;color:#16833b;font-size:24px}.w10-status-card em{font-style:normal;color:#16833b;font-size:13px}.w10-account-card{padding:25px}.w10-big-avatar{width:76px;height:76px;font-size:34px}.w10-account-card h2{font-size:22px;font-weight:400;margin:0}.w10-account-card p{margin:4px 0;color:#555}.w10-account-card small{color:#888}.w10-update-card{padding:22px}.w10-update-ring{width:58px;height:58px;border:3px solid #16833b;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#16833b;font-size:26px}.w10-update-card small{display:block}.w10-info-strip{justify-content:space-between;font-size:13px;background:#fafafa}.w10-info-strip span{color:#666}.w10-inline-back{border:0;background:transparent;color:#0067b8;font-size:14px;padding:4px 0 18px;cursor:pointer}.w10-inline-back:hover{text-decoration:underline}.w10-inline-back span{margin-left:5px}.w10-toggle-card{justify-content:space-between}.w10-toggle-card div{display:flex;flex-direction:column}.w10-toggle-card strong{font-size:15px;font-weight:500}.w10-toggle-card small{color:#666;margin-top:4px}.w10-switch{position:relative;width:42px;height:22px;display:block}.w10-switch input{opacity:0;width:0;height:0}.w10-switch span{position:absolute;inset:0;border-radius:11px;background:#777;cursor:pointer;transition:.15s}.w10-switch span:before{content:"";position:absolute;width:18px;height:18px;left:2px;top:2px;border-radius:50%;background:#fff;transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.25)}.w10-switch input:checked+span{background:#0078d4}.w10-switch input:checked+span:before{transform:translateX(20px)}
+.w10-profile-editor{border:1px solid #ddd;background:#fff;margin:0 0 18px;padding:20px}.w10-profile-editor>div:first-child{display:flex;flex-direction:column}.w10-profile-editor strong{font-size:16px;font-weight:500}.w10-profile-editor small{color:#666;margin-top:5px}.w10-profile-edit-row{display:flex;gap:10px;margin-top:15px}.w10-profile-input{flex:1;height:38px;border:1px solid #999;padding:0 10px;font:14px "Segoe UI",Arial,sans-serif;outline:0}.w10-profile-input:focus{border-color:#0078d4;box-shadow:0 0 0 1px #0078d4}.w10-profile-note{font-size:12px;color:#16833b;margin-top:9px;min-height:16px}
+@media(max-width:900px){.w10-settings-nav{width:250px;flex-basis:250px}#w10SettingsContent{padding:28px 30px}.w10-settings-grid{grid-template-columns:1fr}}
+</style>
+
+<style id="w10-settings-app-gear-css">
+.w10-settings-app-gear{
+  width:82px!important;
+  height:82px!important;
+  object-fit:contain!important;
+  display:block!important;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.10));
+}
+.w10-hero-mark{
+  width:90px!important;
+  height:90px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  font-size:0!important;
+  color:transparent!important;
+}
+</style>
+
+</head>
 <body>
 <div data-final-boot="1" id="boot" style="background:#000!important;color:#fff!important"><svg aria-hidden="true" class="initial-final-boot-logo" height="76" viewbox="0 0 88 88" width="76"><path d="M7 10 40 6v35H7V10zm39-5 35-4v40H46V5zM7 46h33v36L7 78V46zm39 0h35v42l-35-4V46z" fill="#0078d7"></path></svg><div aria-hidden="true" class="initial-final-boot-spinner"><i></i><i></i><i></i><i></i><i></i></div></div>
 <div class="hidden" id="lock"><div class="clock" id="lockClock"></div><div class="date" id="lockDate"></div><div class="unlock">Click to unlock</div></div>
@@ -8693,7 +8729,140 @@ function actionApp(c){
   c.appendChild(r);
 
 }
-function settingsApp(c){let r=shell('Settings','<h1>Settings</h1><div class="v-grid"><div class="v-card"><h3>Personalization</h3><p>Wallpaper, theme and accent</p><button class="v-btn" id="pers">Open</button></div><div class="v-card"><h3>System</h3><p>Display, sound and power</p><button class="v-btn" id="sys">About this PC</button></div><div class="v-card"><h3>Apps</h3><p>Installed apps and defaults</p><button class="v-btn" id="apps">Microsoft Store</button></div><div class="v-card"><h3>Privacy</h3><p>Browser-local simulator data</p><button class="v-btn" id="clear">Clear simulator data</button></div></div>',true);r.querySelector('#pers').onclick=()=>open('personal');r.querySelector('#sys').onclick=()=>dialog2('About this PC','Windows Web Desktop\nBuild 19045 Web\nCPU: Web Core\nRAM: 8 GB simulated');r.querySelector('#apps').onclick=()=>open('store');r.querySelector('#clear').onclick=()=>{if(confirm('Reset saved simulator data?')){localStorage.removeItem(storeKey);location.reload()}};c.appendChild(r)}
+function settingsApp(c){
+ const html=`
+ <div class="w10-settings">
+   <aside class="w10-settings-nav">
+     <div class="w10-settings-brand">
+       <button class="w10-settings-back" aria-label="Back">‹</button>
+       <div class="w10-settings-title">Settings</div>
+     </div>
+     <div class="w10-settings-profile">
+       <div class="w10-settings-avatar">U</div>
+       <div><strong>User</strong><span>Local account</span></div>
+       <button class="w10-settings-profile-btn" data-page="accounts">›</button>
+     </div>
+     <div class="w10-settings-search-wrap"><span>⌕</span><input id="w10SettingsSearch" placeholder="Find a setting" autocomplete="off"></div>
+     <nav class="w10-settings-menu">
+       <button class="active" data-page="home"><span>⌂</span> Home</button>
+       <button data-page="system"><span>▣</span> System</button>
+       <button data-page="devices"><span>⌨</span> Devices</button>
+       <button data-page="network"><span>◉</span> Network &amp; Internet</button>
+       <button data-page="personalization"><span>◈</span> Personalization</button>
+       <button data-page="apps"><span>▤</span> Apps</button>
+       <button data-page="accounts"><span>♙</span> Accounts</button>
+       <button data-page="time"><span>◷</span> Time &amp; Language</button>
+       <button data-page="gaming"><span>◉</span> Gaming</button>
+       <button data-page="accessibility"><span>◎</span> Ease of Access</button>
+       <button data-page="search"><span>⌕</span> Search</button>
+       <button data-page="privacy"><span>♢</span> Privacy</button>
+       <button data-page="update"><span>↻</span> Update &amp; Security</button>
+       <button data-page="advanced"><span>⚙</span> Advanced</button>
+     </nav>
+   </aside>
+   <main class="w10-settings-main">
+     <div id="w10SettingsContent"></div>
+   </main>
+ </div>`;
+ const r=shell('Settings',html,true);
+ r.classList.add('w10-settings-window');
+ const content=r.querySelector('#w10SettingsContent');
+ const menu=[...r.querySelectorAll('.w10-settings-menu button')];
+ const pages={
+  home:{title:'Home',sub:'Find a setting and manage your Windows Web experience.',body:()=>`
+   <div class="w10-hero"><div><div class="w10-kicker">WINDOWS WEB</div><h1>Settings</h1><p>Manage your device, apps, personalization and system preferences.</p></div><div class="w10-hero-mark"><img class="w10-settings-app-gear" src="data:image/png;base64,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" alt="" aria-hidden="true"></div></div>
+   <div class="w10-section-title">Recommended settings</div>
+   <div class="w10-settings-grid">
+    <button class="w10-setting-card" data-page="system"><b>▣</b><span><strong>System</strong><small>Display, sound, notifications and power</small></span><i>›</i></button>
+    <button class="w10-setting-card" data-page="personalization"><b>◈</b><span><strong>Personalization</strong><small>Background, colors, lock screen and themes</small></span><i>›</i></button>
+    <button class="w10-setting-card" data-page="network"><b>◉</b><span><strong>Network &amp; Internet</strong><small>Wi-Fi, Ethernet and network status</small></span><i>›</i></button>
+    <button class="w10-setting-card" data-page="update"><b>↻</b><span><strong>Update &amp; Security</strong><small>Updates, recovery and Windows Security</small></span><i>›</i></button>
+   </div>
+   <div class="w10-section-title">Quick links</div>
+   <div class="w10-link-list"><button data-open="personal">Personalization <span>›</span></button><button data-open="store">Microsoft Store <span>›</span></button><button data-about="1">About this PC <span>›</span></button></div>`},
+  system:{title:'System',sub:'Display, sound, notifications, power and device information.',body:()=>`
+   <h1>System</h1><p class="w10-sub">Display, sound, notifications, power and more.</p>
+   <div class="w10-list-card">
+    <button data-panel="display"><b>▣</b><span><strong>Display</strong><small>Orientation, scale and simulated display settings</small></span><i>›</i></button>
+    <button data-panel="sound"><b>♫</b><span><strong>Sound</strong><small>Volume, output and input devices</small></span><i>›</i></button>
+    <button data-panel="notifications"><b>◌</b><span><strong>Notifications</strong><small>Notification behavior and Action Center</small></span><i>›</i></button>
+    <button data-panel="power"><b>⏻</b><span><strong>Power &amp; sleep</strong><small>Screen and simulated power preferences</small></span><i>›</i></button>
+    <button data-panel="storage"><b>▤</b><span><strong>Storage</strong><small>See simulated browser storage usage</small></span><i>›</i></button>
+    <button data-panel="multitasking"><b>▥</b><span><strong>Multitasking</strong><small>Window behavior and task switching</small></span><i>›</i></button>
+    <button data-panel="clipboard"><b>▣</b><span><strong>Clipboard</strong><small>Clipboard history preferences</small></span><i>›</i></button>
+    <button data-about="1"><b>ⓘ</b><span><strong>About</strong><small>Device specifications and Windows Web build information</small></span><i>›</i></button>
+   </div>
+   <div class="w10-info-strip"><strong>Windows Web</strong><span>Build 19045 Web · Browser-based simulator</span></div>`},
+  devices:{title:'Devices',sub:'Bluetooth, printers, mouse, keyboard and connected devices.',body:()=>`
+   <h1>Devices</h1><p class="w10-sub">Bluetooth, printers, mouse, keyboard and more.</p>
+   <div class="w10-list-card"><button data-panel="bluetooth"><b>⌁</b><span><strong>Bluetooth &amp; devices</strong><small>Manage simulated connected devices</small></span><i>›</i></button><button data-panel="mouse"><b>↖</b><span><strong>Mouse</strong><small>Pointer and button preferences</small></span><i>›</i></button><button data-panel="keyboard"><b>⌨</b><span><strong>Typing</strong><small>Keyboard and typing preferences</small></span><i>›</i></button><button data-panel="printers"><b>▤</b><span><strong>Printers &amp; scanners</strong><small>View available simulated devices</small></span><i>›</i></button><button data-panel="autoplay"><b>▶</b><span><strong>AutoPlay</strong><small>Choose what happens when media or devices connect</small></span><i>›</i></button><button data-panel="pen"><b>✎</b><span><strong>Pen &amp; Windows Ink</strong><small>Pen and touch preferences</small></span><i>›</i></button></div>`},
+  network:{title:'Network & Internet',sub:'Connect to the internet and manage network preferences.',body:()=>`
+   <h1>Network &amp; Internet</h1><p class="w10-sub">Wi-Fi, Ethernet, VPN, proxy and network status.</p>
+   <div class="w10-status-card"><div class="w10-status-icon">◉</div><div><strong>Network status</strong><span>Connected through the browser</span></div><em>Connected</em></div>
+   <div class="w10-list-card"><button data-panel="wifi"><b>⌁</b><span><strong>Wi-Fi</strong><small>Manage simulated wireless networks</small></span><i>›</i></button><button data-panel="ethernet"><b>▰</b><span><strong>Ethernet</strong><small>Wired connection information</small></span><i>›</i></button><button data-panel="vpn"><b>▱</b><span><strong>VPN</strong><small>Add or manage simulated VPN profiles</small></span><i>›</i></button><button data-panel="proxy"><b>◇</b><span><strong>Proxy</strong><small>Configure browser-local proxy preferences</small></span><i>›</i></button><button data-panel="hotspot"><b>⌁</b><span><strong>Mobile hotspot</strong><small>Simulated hotspot controls</small></span><i>›</i></button><button data-panel="advancednetwork"><b>⚙</b><span><strong>Advanced network settings</strong><small>Network adapter and connection details</small></span><i>›</i></button></div>`},
+  personalization:{title:'Personalization',sub:'Background, colors, lock screen, themes and Start.',body:()=>`
+   <h1>Personalization</h1><p class="w10-sub">Change the look and feel of Windows Web.</p>
+   <div class="w10-feature-card"><div class="w10-feature-icon">◈</div><div><strong>Personalization</strong><span>Use the existing Personalization app for wallpapers, themes and accent colors.</span></div><button class="w10-blue-btn" data-open="personal">Open</button></div>
+   <div class="w10-list-card"><button data-panel="colors"><b>●</b><span><strong>Colors</strong><small>Accent color and appearance preferences</small></span><i>›</i></button><button data-panel="lock"><b>▣</b><span><strong>Lock screen</strong><small>Manage the simulator's lock-screen experience</small></span><i>›</i></button><button data-panel="start"><b>⊞</b><span><strong>Start</strong><small>Windows Web Start menu preferences</small></span><i>›</i></button><button data-panel="taskbar"><b>▬</b><span><strong>Taskbar</strong><small>Taskbar behavior and appearance</small></span><i>›</i></button><button data-panel="fonts"><b>A</b><span><strong>Fonts</strong><small>Font and text rendering preferences</small></span><i>›</i></button><button data-panel="themes"><b>✦</b><span><strong>Themes</strong><small>Theme, sounds and visual style</small></span><i>›</i></button></div>`},
+  apps:{title:'Apps',sub:'Installed apps, defaults and optional app settings.',body:()=>`
+   <h1>Apps</h1><p class="w10-sub">Manage apps without duplicating the simulator's existing app system.</p>
+   <div class="w10-feature-card"><div class="w10-feature-icon">▤</div><div><strong>Microsoft Store</strong><span>Open the existing Store app to browse the simulator's available apps.</span></div><button class="w10-blue-btn" data-open="store">Open</button></div>
+   <div class="w10-list-card"><button data-panel="installed"><b>▦</b><span><strong>Installed apps</strong><small>View apps registered with Windows Web</small></span><i>›</i></button><button data-panel="defaults"><b>▤</b><span><strong>Default apps</strong><small>Browser-local default app associations</small></span><i>›</i></button><button data-panel="startup"><b>⚡</b><span><strong>Startup</strong><small>Apps that may run when the desktop starts</small></span><i>›</i></button><button data-panel="optional"><b>＋</b><span><strong>Optional features</strong><small>Extra Windows Web components and tools</small></span><i>›</i></button><button data-panel="permissionsapps"><b>♢</b><span><strong>App permissions</strong><small>Review protected browser capabilities</small></span><i>›</i></button></div>`},
+  accounts:{title:'Accounts',sub:'Your account, sign-in options and local profile.',body:()=>`
+   <h1>Accounts</h1><p class="w10-sub">Manage your local Windows Web account.</p>
+   <div class="w10-account-card"><div class="w10-big-avatar" id="w10AccountAvatar">U</div><div><h2 id="w10AccountName">User</h2><p>Local account</p><small>Windows Web Desktop</small></div></div>
+   <div class="w10-profile-editor"><div><strong>Change your username</strong><small>This name is used throughout the simulated desktop.</small></div><div class="w10-profile-edit-row"><input class="w10-profile-input" id="w10UsernameInput" maxlength="32" autocomplete="off"><button class="w10-blue-btn" id="w10SaveUsername">Save</button></div><div class="w10-profile-note" id="w10UsernameStatus"></div></div>
+   <div class="w10-list-card"><button data-panel="signin"><b>▣</b><span><strong>Sign-in options</strong><small>PIN and login preferences</small></span><i>›</i></button><button data-panel="yourinfo"><b>♙</b><span><strong>Your info</strong><small>Local profile information</small></span><i>›</i></button><button data-panel="family"><b>♧</b><span><strong>Family &amp; other users</strong><small>Simulated local accounts</small></span><i>›</i></button></div>`},
+  time:{title:'Time & Language',sub:'Date, time, region, language and typing.',body:()=>`
+   <h1>Time &amp; Language</h1><p class="w10-sub">Date, time, language and regional preferences.</p>
+   <div class="w10-list-card"><button data-panel="date"><b>◷</b><span><strong>Date &amp; time</strong><small>Use the browser's current date and time</small></span><i>›</i></button><button data-panel="region"><b>◎</b><span><strong>Region</strong><small>Regional format for this simulator</small></span><i>›</i></button><button data-panel="language"><b>文</b><span><strong>Language</strong><small>Windows Web interface language</small></span><i>›</i></button><button data-panel="typing"><b>⌨</b><span><strong>Typing</strong><small>Keyboard and typing preferences</small></span><i>›</i></button><button data-panel="speech"><b>◉</b><span><strong>Speech</strong><small>Speech and microphone preferences</small></span><i>›</i></button><button data-panel="regionalformats"><b>◎</b><span><strong>Regional formats</strong><small>Date, number and measurement formats</small></span><i>›</i></button></div>`},
+  gaming:{title:'Gaming',sub:'Game Mode, Xbox and controller-related settings.',body:()=>`
+   <h1>Gaming</h1><p class="w10-sub">Game features for the Windows Web simulator.</p>
+   <div class="w10-list-card"><button data-panel="gamebar"><b>▣</b><span><strong>Game Bar</strong><small>Game overlay preferences</small></span><i>›</i></button><button data-panel="gamemode"><b>◉</b><span><strong>Game Mode</strong><small>Prioritize game performance in the simulator</small></span><i>›</i></button><button data-panel="captures"><b>●</b><span><strong>Captures</strong><small>Screenshot and recording preferences</small></span><i>›</i></button><button data-open="xbox"><b>◉</b><span><strong>Xbox</strong><small>Open the existing Xbox app</small></span><i>›</i></button></div>`},
+  accessibility:{title:'Ease of Access',sub:'Accessibility tools for vision, hearing and interaction.',body:()=>`
+   <h1>Ease of Access</h1><p class="w10-sub">Make Windows Web easier to see and use.</p>
+   <div class="w10-list-card"><button data-panel="displayaccess"><b>⊙</b><span><strong>Display</strong><small>Text size, contrast and visual effects</small></span><i>›</i></button><button data-panel="magnifier"><b>⌕</b><span><strong>Magnifier</strong><small>Zoom and magnification preferences</small></span><i>›</i></button><button data-panel="keyboardaccess"><b>⌨</b><span><strong>Keyboard</strong><small>Accessibility keyboard options</small></span><i>›</i></button><button data-panel="mouseaccess"><b>↖</b><span><strong>Mouse pointer</strong><small>Pointer size and visibility</small></span><i>›</i></button><button data-panel="narrator"><b>◉</b><span><strong>Narrator</strong><small>Screen reading preferences</small></span><i>›</i></button><button data-panel="colorfilters"><b>◐</b><span><strong>Color filters</strong><small>Adjust simulated display colors</small></span><i>›</i></button><button data-panel="audioaccess"><b>♪</b><span><strong>Audio</strong><small>Visual notifications and audio accessibility</small></span><i>›</i></button></div>`},
+  search:{title:'Search',sub:'Windows Web search and indexing preferences.',body:()=>`
+   <h1>Search</h1><p class="w10-sub">Control how search works inside the simulator.</p>
+   <div class="w10-toggle-card"><div><strong>Search suggestions</strong><small>Show helpful suggestions while typing</small></div><label class="w10-switch"><input id="w10SearchSuggest" type="checkbox" checked><span></span></label></div>
+   <div class="w10-toggle-card"><div><strong>Search history</strong><small>Keep recent searches in this browser</small></div><label class="w10-switch"><input id="w10SearchHistory" type="checkbox" checked><span></span></label></div>`},
+  privacy:{title:'Privacy',sub:'Control browser-local permissions and simulator data.',body:()=>`
+   <h1>Privacy</h1><p class="w10-sub">Your data stays in the browser unless you choose to clear it.</p>
+   <div class="w10-list-card"><button data-panel="generalprivacy"><b>▣</b><span><strong>General</strong><small>Privacy and diagnostic preferences</small></span><i>›</i></button><button data-panel="permissions"><b>♢</b><span><strong>App permissions</strong><small>Camera, microphone and browser permissions</small></span><i>›</i></button><button data-panel="activity"><b>◷</b><span><strong>Activity history</strong><small>Control simulated activity history</small></span><i>›</i></button><button data-panel="diagnostics"><b>ⓘ</b><span><strong>Diagnostics</strong><small>Optional diagnostic information</small></span><i>›</i></button><button id="w10ClearData"><b>⌫</b><span><strong>Clear simulator data</strong><small>Reset saved Windows Web state in this browser</small></span><i>›</i></button></div>`},
+  update:{title:'Update & Security',sub:'Windows Update, security, recovery and backup.',body:()=>`
+   <h1>Update &amp; Security</h1><p class="w10-sub">Keep Windows Web current and manage recovery tools.</p>
+   <div class="w10-update-card"><div class="w10-update-ring">✓</div><div><strong>You're up to date</strong><span>Windows Web Build 19045 Web</span><small>Last checked just now</small></div><button class="w10-blue-btn" id="w10CheckUpdate">Check for updates</button></div>
+   <div class="w10-list-card"><button data-panel="security"><b>♢</b><span><strong>Windows Security</strong><small>Security dashboard and protection status</small></span><i>›</i></button><button data-panel="recovery"><b>↶</b><span><strong>Recovery</strong><small>Reset and recovery options</small></span><i>›</i></button><button data-panel="backup"><b>▣</b><span><strong>Backup</strong><small>Browser-local backup information</small></span><i>›</i></button></div>`},
+  advanced:{title:'Advanced',sub:'Additional Windows Web controls and diagnostics.',body:()=>`
+   <h1>Advanced</h1><p class="w10-sub">Extra controls for the simulated PC.</p>
+   <div class="w10-list-card"><button data-panel="diagnostics"><b>ⓘ</b><span><strong>System diagnostics</strong><small>Browser, screen and connection details</small></span><i>›</i></button><button data-panel="developer"><b>&lt;/&gt;</b><span><strong>Developer options</strong><small>Experimental simulator controls</small></span><i>›</i></button><button data-panel="performance"><b>▥</b><span><strong>Performance</strong><small>Animation and resource preferences</small></span><i>›</i></button><button data-panel="resetsettings"><b>↶</b><span><strong>Reset Settings</strong><small>Return Settings preferences to defaults</small></span><i>›</i></button></div>`}
+ };
+ const panels={
+  display:['Display','Use the browser viewport as the simulated display.','Resolution and scale are represented by the current browser window.'],sound:['Sound','Volume and audio device preferences.','Audio output is controlled by your browser and operating system.'],notifications:['Notifications','Control notification behavior.','The existing Action Center handles simulator notifications.'],power:['Power & sleep','Power behavior for the simulated desktop.','Use the existing power controls from the Windows Web taskbar.'],bluetooth:['Bluetooth & devices','Connected device information.','Browser permissions determine which physical devices can be accessed.'],mouse:['Mouse','Pointer preferences.','Browser pointer behavior follows your operating system settings.'],keyboard:['Typing','Keyboard preferences.','Keyboard shortcuts and typing are handled by the Windows Web shell.'],printers:['Printers & scanners','Printer information.','Physical printing is controlled by your browser.'],wifi:['Wi-Fi','Wireless connection status.','Network access is provided by the host browser.'],ethernet:['Ethernet','Wired connection status.','The simulator uses the host device network connection.'],vpn:['VPN','VPN profiles.','VPN connections are controlled by the host operating system.'],proxy:['Proxy','Proxy preferences.','Browser networking determines proxy behavior.'],colors:['Colors','Accent color and appearance.','Use Personalization for the simulator\'s full color controls.'],lock:['Lock screen','Lock-screen preferences.','The existing Windows Web lock screen remains the source of truth.'],start:['Start','Start menu preferences.','The existing Start menu is shared across the simulator.'],taskbar:['Taskbar','Taskbar preferences.','The existing taskbar controls remain active.'],installed:['Installed apps','Registered applications.','Use Start or Search to launch the simulator\'s existing applications.'],defaults:['Default apps','Default app associations.','Apps are opened through the Windows Web shell router.'],startup:['Startup','Startup applications.','Startup behavior is controlled by the simulator boot sequence.'],signin:['Sign-in options','PIN and sign-in preferences.','The existing login screen handles authentication.'],yourinfo:['Your info','Local account information.','This simulator currently uses the local User account.'],family:['Family & other users','Other simulated accounts.','Additional Windows Web accounts are not currently configured.'],date:['Date & time','Current date and time.','The desktop clock follows the browser environment.'],region:['Region','Regional settings.','Language and regional formatting follow the browser environment.'],language:['Language','Windows Web interface language.','The interface is currently provided in English.'],typing:['Typing','Typing settings.','Keyboard input is handled by the browser.'],gamebar:['Game Bar','Game Bar settings.','Use the simulator\'s existing gaming apps from Start.'],gamemode:['Game Mode','Game Mode','Game Mode is a visual simulator setting.'],captures:['Captures','Game captures.','Browser permissions control screenshots and recordings.'],displayaccess:['Display','Accessibility display options.','Use browser zoom and display settings for additional accessibility.'],magnifier:['Magnifier','Magnifier','Zoom the browser page to enlarge the Windows Web desktop.'],keyboardaccess:['Keyboard','Accessibility keyboard.','Keyboard shortcuts remain available throughout the simulator.'],mouseaccess:['Mouse pointer','Pointer accessibility.','Pointer size is controlled by the host operating system.'],generalprivacy:['General privacy','Privacy controls.','Windows Web stores simulator state locally in this browser.'],permissions:['App permissions','Permissions','Browser permission prompts control camera, microphone and other protected capabilities.'],security:['Windows Security','Security dashboard','This browser-based simulator cannot replace the host operating system security tools.'],recovery:['Recovery','Recovery options','Use the simulator reset controls or reload the page to restart the Windows Web environment.'],backup:['Backup','Backup and restore','Simulator state is stored locally in browser storage.'],storage:['Storage','Storage usage','Files and application state use browser-local storage.'],multitasking:['Multitasking','Multitasking','Window management and task switching are handled by the Windows Web shell.'],clipboard:['Clipboard','Clipboard','Clipboard history is simulated locally by the browser page.'],autoplay:['AutoPlay','AutoPlay','Choose simulated actions for connected media.'],pen:['Pen & Windows Ink','Pen & Windows Ink','Pen and touch behavior follows the host browser.'],hotspot:['Mobile hotspot','Mobile hotspot','Hotspot controls are simulated and do not change the real network.'],advancednetwork:['Advanced network settings','Advanced network settings','Connection details are provided by the browser environment.'],fonts:['Fonts','Fonts','Font rendering uses the browser and available system fonts.'],themes:['Themes','Themes','Themes are coordinated with the existing Personalization app.'],optional:['Optional features','Optional features','Additional Windows Web tools can be enabled visually.'],permissionsapps:['App permissions','App permissions','Protected capabilities use browser permission prompts.'],speech:['Speech','Speech','Speech recognition depends on browser support and permissions.'],regionalformats:['Regional formats','Regional formats','Formatting follows the browser locale.'],narrator:['Narrator','Narrator','Screen reading is represented by accessibility controls in the simulator.'],colorfilters:['Color filters','Color filters','Color filter preferences are simulated for the desktop UI.'],audioaccess:['Audio','Audio accessibility','Visual notification preferences can be simulated locally.'],activity:['Activity history','Activity history','Recent simulator activity can be stored locally.'],diagnostics:['Diagnostics','Diagnostics','Browser, display and connection diagnostics for Windows Web.'],developer:['Developer options','Developer options','Experimental options are visual simulator controls only.'],performance:['Performance','Performance','Animation and transparency controls affect the simulated UI.'],resetsettings:['Reset Settings','Reset Settings','Reset Settings preferences without deleting your files.']
+ };
+ function renderPanel(key){const p=panels[key]; if(!p)return; let extra='';
+   if(['notifications','power','colors','start','taskbar','gamemode','captures','displayaccess','magnifier','keyboardaccess','mouseaccess','generalprivacy','activity','diagnostics','developer','performance'].includes(key)){extra=`<div class="w10-toggle-card"><div><strong>Enable this setting</strong><small>Apply this preference to the simulated Windows Web experience.</small></div><label class="w10-switch"><input type="checkbox" checked><span></span></label></div>`;}
+   if(key==='storage')extra=`<div class="w10-info-strip"><strong>Browser storage</strong><span>${(JSON.stringify(state).length/1024).toFixed(1)} KB currently used by simulator state</span></div><div class="w10-toggle-card"><div><strong>Storage notifications</strong><small>Show warnings when simulated storage grows.</small></div><label class="w10-switch"><input type="checkbox" checked><span></span></label></div>`;
+   if(key==='multitasking')extra=`<div class="w10-toggle-card"><div><strong>Snap windows</strong><small>Use the simulated desktop layout when moving windows.</small></div><label class="w10-switch"><input type="checkbox" checked><span></span></label></div><div class="w10-toggle-card"><div><strong>Show window animations</strong><small>Use the existing animation system.</small></div><label class="w10-switch"><input type="checkbox" checked><span></span></label></div>`;
+   if(key==='resetsettings')extra=`<button class="w10-blue-btn" id="w10ResetSettings">Reset Settings preferences</button>`;
+   content.innerHTML=`<button class="w10-inline-back" id="w10PanelBack">‹ <span>Back</span></button><h1>${p[0]}</h1><p class="w10-sub">${p[1]}</p><div class="w10-detail-card"><div class="w10-detail-icon">⚙</div><div><strong>${p[0]}</strong><span>${p[2]}</span></div></div>${extra}`; r.querySelector('#w10PanelBack').onclick=()=>renderPage(current); const reset=r.querySelector('#w10ResetSettings'); if(reset)reset.onclick=()=>{if(confirm('Reset Settings preferences?')){state.settings={...(state.settings||{}),accent:state.settings?.accent||'#0078d7',username:window.__w10GetUsername?window.__w10GetUsername():(state.settings?.username||'Youssef')};save();toast2('Settings preferences reset');renderPanel(key)}};}
+ let current='home';
+ function wire(){
+   r.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>renderPage(b.dataset.page));
+   r.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>open(b.dataset.open));
+   r.querySelectorAll('[data-about]').forEach(b=>b.onclick=()=>dialog2('About this PC','Windows Web Desktop\\nBuild 19045 Web\\nCPU: Web Core\\nRAM: 8 GB simulated'));
+   r.querySelectorAll('[data-panel]').forEach(b=>b.onclick=()=>renderPanel(b.dataset.panel));
+   const clear=r.querySelector('#w10ClearData'); if(clear)clear.onclick=()=>{if(confirm('Reset saved simulator data?')){localStorage.removeItem(storeKey);location.reload()}};
+   const uname=r.querySelector('#w10UsernameInput'); if(uname){uname.value=window.__w10GetUsername?window.__w10GetUsername():'Youssef'; const saveName=r.querySelector('#w10SaveUsername'); saveName.onclick=()=>{const n=uname.value.trim().replace(/\s+/g,' ');if(!n){r.querySelector('#w10UsernameStatus').textContent='Enter a username.';return}if(window.__w10SetUsername)window.__w10SetUsername(n);r.querySelector('#w10UsernameStatus').textContent='Username updated across Windows Web.';const h=r.querySelector('#w10AccountName');if(h)h.textContent=n;const a=r.querySelector('#w10AccountAvatar');if(a)a.textContent=n.charAt(0).toUpperCase()}}
+   const upd=r.querySelector('#w10CheckUpdate'); if(upd)upd.onclick=()=>{upd.disabled=true;upd.textContent='Checking…';setTimeout(()=>{upd.disabled=false;upd.textContent='Check for updates';toast2('Windows Web is up to date')},900)};
+ }
+ function renderPage(page){current=pages[page]?page:'home';menu.forEach(b=>b.classList.toggle('active',b.dataset.page===current));content.innerHTML=`<div class="w10-breadcrumb">Settings <span>›</span> ${pages[current].title}</div>${pages[current].body()}`;wire();}
+ const search=r.querySelector('#w10SettingsSearch');
+ search.oninput=()=>{const q=search.value.trim().toLowerCase();menu.forEach(b=>{b.style.display=(!q||b.textContent.toLowerCase().includes(q))?'flex':'none'});};
+ r.querySelector('.w10-settings-back').onclick=()=>{try{r.remove()}catch(e){}};
+ renderPage('home');
+ c.appendChild(r)
+}
 function personalApp(c){
  const walls=[
 
@@ -36070,3 +36239,148 @@ document.addEventListener('click',e=>{
 })();
 </script>
 </body></html>
+
+<!-- 512 USERNAME SYSTEM + SETTINGS V2 ADDITIONS -->
+<script id="w10-username-global-v3">
+(()=>{
+  'use strict';
+  const USER_KEY='win10sim_username_v1';
+  const DEFAULT_NAME='Youssef';
+
+  function cleanName(v){
+    return String(v??'').trim().replace(/\s+/g,' ').slice(0,32);
+  }
+
+  function get(){
+    try{
+      const stored=cleanName(localStorage.getItem(USER_KEY)||'');
+      if(stored)return stored;
+    }catch(e){}
+    try{
+      const fromState=cleanName(window.state?.settings?.username||'');
+      if(fromState)return fromState;
+    }catch(e){}
+    return DEFAULT_NAME;
+  }
+
+  // Keep the dedicated username and the simulator state synchronized.
+  const originalSave=window.save;
+  if(typeof originalSave==='function' && !originalSave.__w10UsernameWrapped){
+    const wrappedSave=function(){
+      try{
+        const stored=cleanName(localStorage.getItem(USER_KEY)||'');
+        if(stored){
+          window.state=window.state||{};
+          state.settings=state.settings||{};
+          state.settings.username=stored;
+        }
+      }catch(e){}
+      return originalSave.apply(this,arguments);
+    };
+    wrappedSave.__w10UsernameWrapped=true;
+    window.save=wrappedSave;
+  }
+
+  function saveName(value){
+    const name=cleanName(value);
+    if(!name)return false;
+
+    try{
+      localStorage.setItem(USER_KEY,name);
+      window.state=window.state||{};
+      state.settings=state.settings||{};
+      state.settings.username=name;
+
+      if(typeof window.save==='function')window.save();
+      else if(typeof window.persist==='function')window.persist();
+    }catch(e){}
+
+    refresh(name);
+    try{
+      if(typeof window.toastW10==='function')toastW10('Username changed to '+name);
+      else if(typeof window.toast==='function')toast('Username changed to '+name);
+    }catch(e){}
+    return true;
+  }
+
+  function setText(sel,name){
+    document.querySelectorAll(sel).forEach(el=>{
+      el.textContent=name;
+    });
+  }
+
+  function refresh(name=get()){
+    name=cleanName(name)||DEFAULT_NAME;
+
+    // Login screen.
+    const login=document.getElementById('login');
+    if(login){
+      const h=login.querySelector('h2');
+      if(h)h.textContent=name;
+      const pic=login.querySelector('.userpic');
+      if(pic)pic.textContent=name.charAt(0).toUpperCase();
+    }
+
+    // Canonical Start/menu surfaces.
+    setText('.startUser b',name);
+    setText('.win10-user b',name);
+
+    const startUser=document.getElementById('win10User');
+    if(startUser)startUser.textContent='👤 '+name;
+
+    document.querySelectorAll('.startUser,.win10-user').forEach(el=>{
+      el.querySelectorAll('span').forEach(s=>{
+        if((s.textContent||'').trim()==='Y')s.textContent=name.charAt(0).toUpperCase();
+      });
+    });
+
+    // Settings account surfaces.
+    setText('#w10SettingsContent #w10AccountName',name);
+    setText('.w10-settings-profile strong',name);
+    const av=document.querySelector('#w10AccountAvatar');
+    if(av)av.textContent=name.charAt(0).toUpperCase();
+    document.querySelectorAll('.w10-settings-avatar').forEach(x=>{
+      x.textContent=name.charAt(0).toUpperCase();
+    });
+
+    // Safely replace old literal name in visible text nodes only.
+    const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+    const nodes=[];
+    let n;
+    while(n=walker.nextNode()){
+      const tag=n.parentElement?.tagName;
+      if(tag==='SCRIPT'||tag==='STYLE'||tag==='TEXTAREA')continue;
+      if((n.nodeValue||'').includes('Youssef'))nodes.push(n);
+    }
+    nodes.forEach(t=>{
+      t.nodeValue=t.nodeValue.replaceAll('Youssef',name);
+    });
+  }
+
+  window.__w10GetUsername=get;
+  window.__w10SetUsername=saveName;
+  window.__w10RefreshUsername=refresh;
+
+  // Restore the dedicated saved value before the rest of the UI starts rebuilding.
+  try{
+    window.state=window.state||{};
+    state.settings=state.settings||{};
+    const existing=cleanName(localStorage.getItem(USER_KEY)||'');
+    const stateName=cleanName(state.settings.username||'');
+    const name=existing||stateName||DEFAULT_NAME;
+    localStorage.setItem(USER_KEY,name);
+    state.settings.username=name;
+    if(typeof window.save==='function')window.save();
+  }catch(e){}
+
+  refresh();
+
+  const mo=new MutationObserver(()=>{
+    clearTimeout(window.__w10UserRefreshTimer);
+    window.__w10UserRefreshTimer=setTimeout(()=>refresh(),30);
+  });
+  try{
+    mo.observe(document.body,{subtree:true,childList:true,characterData:true});
+  }catch(e){}
+})();
+</script>
