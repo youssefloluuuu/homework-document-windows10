@@ -170,7 +170,7 @@ function timeUpdate(){
 }
 setInterval(timeUpdate,1000);timeUpdate();
 
-setTimeout(()=>{$('boot').classList.add('hidden');$('lock').classList.remove('hidden')},2300);
+window.__512LegacyBootTimer=setTimeout(()=>{$('boot').classList.add('hidden');$('lock').classList.remove('hidden')},2300);
 $('lock').onclick=()=>{$('lock').classList.add('hidden');$('login').classList.remove('hidden')};
 $('loginBtn').onclick=()=>{$('login').classList.add('hidden');$('desktop').classList.remove('hidden')};
 $('pin').onkeydown=e=>{if(e.key==='Enter')$('loginBtn').click()};
@@ -974,7 +974,6 @@ Object.assign(window.__legacyAppRenderers,{
   xbox:xbox
 });
 function scoreGame(id,score){state.scores=state.scores||{};state.scores[id]=Math.max(state.scores[id]||0,score);persist()}
-function systemPower(kind){let ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:100002;background:#050505;color:#fff;display:grid;place-items:center';ov.innerHTML='<div style="text-align:center"><div style="font-size:70px">⊞</div><h2>'+ (kind==='restart'?'Restarting':'Shutting down') +' Windows Web…</h2><div class="loader" style="margin:25px auto"></div></div>';document.body.appendChild(ov);setTimeout(()=>{ov.remove();document.getElementById('desktop').classList.remove('hidden');toast2(kind==='restart'?'Restart complete':'Power state simulated')},1600)}
 function render(id,c){
 
   /* FINAL CANONICAL ROUTER BRIDGE: the large V4 renderers live inside their
@@ -9043,8 +9042,8 @@ function personalApp(c){
 ];
  let cards=walls.map((w,i)=>`<button class="wallCard" data-wall="${i}" style="background:${w[1]}"><span>${w[0]}</span></button>`).join('');
  let r=shell('Personalization',`<div class="v-card wallPanel"><h2>Desktop background</h2><p>Pick a Windows-style wallpaper 👇</p><div class="wallGrid">${cards}</div><div class="wallCustom"><input class="v-input" id="wall" value="${esc(state.wall||walls[0][1])}"><button class="v-btn primary" id="apply">Apply custom</button></div></div><div class="v-card"><h3>Accent</h3><div id="acc"></div></div><div class="v-card"><h3>Theme</h3><button class="v-btn" id="dark">Dark</button> <button class="v-btn" id="light">Light</button></div>`,true);
- r.querySelectorAll('.wallCard').forEach(b=>b.onclick=()=>{let w=walls[+b.dataset.wall][1];state.wall=w;desk.style.background=w;persist();r.querySelector('#wall').value=w;toast2('Wallpaper applied')});
- r.querySelector('#apply').onclick=()=>{state.wall=r.querySelector('#wall').value;desk.style.background=state.wall;persist();toast2('Custom wallpaper applied')};
+ r.querySelectorAll('.wallCard').forEach(b=>b.onclick=()=>{let w=walls[+b.dataset.wall][1];state.wall=w;const css=/^(linear-gradient|radial-gradient|conic-gradient|url\()/i.test(w)?w:'url(\"'+String(w).replace(/\"/g,'\\\"')+'\")';desk.style.setProperty('background-image',css,'important');desk.style.setProperty('background-size','cover','important');desk.style.setProperty('background-position','center','important');desk.style.setProperty('background-repeat','no-repeat','important');try{localStorage.setItem('win10_online_wall',w);localStorage.setItem('win10_wall_name',walls[+b.dataset.wall][0]);localStorage.setItem('win10sim_wallpaper_live_v1',w)}catch(e){};persist();r.querySelector('#wall').value=w;toast2('Wallpaper applied')});
+ r.querySelector('#apply').onclick=()=>{const w=r.querySelector('#wall').value.trim();state.wall=w;const css=/^(linear-gradient|radial-gradient|conic-gradient|url\()/i.test(w)?w:'url(\"'+String(w).replace(/\"/g,'\\\"')+'\")';desk.style.setProperty('background-image',css,'important');desk.style.setProperty('background-size','cover','important');desk.style.setProperty('background-position','center','important');desk.style.setProperty('background-repeat','no-repeat','important');try{localStorage.setItem('win10_online_wall',w);localStorage.setItem('win10_wall_name','Custom wallpaper');localStorage.setItem('win10sim_wallpaper_live_v1',w)}catch(e){};persist();toast2('Custom wallpaper applied')};
  let a=r.querySelector('#acc');['#0078d7','#e81123','#107c10','#881798','#ff8c00','#00b7c3','#5c2d91'].forEach(x=>{let b=btn(' ',()=>{state.settings.accent=x;document.documentElement.style.setProperty('--v-accent',x);persist();toast2('Accent changed')});b.style.background=x;b.style.width='42px';b.style.height='32px';a.appendChild(b)});
  r.querySelector('#dark').onclick=()=>{document.body.classList.remove('light');state.settings.theme='dark';persist()};r.querySelector('#light').onclick=()=>{document.body.classList.add('light');state.settings.theme='light';persist()};c.appendChild(r)
 }
@@ -31283,7 +31282,6 @@ function racingApp(c){
 
 }
 
-function systemPower(kind){let ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:100050;background:#050505;color:#fff;display:grid;place-items:center';ov.innerHTML='<div style="text-align:center"><div style="font-size:72px">⊞</div><h2>'+ (kind==='restart'?'Restarting':'Shutting down') +' Windows Web…</h2><div class="loader" style="margin:25px auto"></div></div>';document.body.appendChild(ov);setTimeout(()=>{ov.remove();if(kind==='restart'){Object.values(apps).forEach(w=>w.remove());apps={};taskApps.innerHTML='';open('settings');toast2('Restart complete')}else{qa('.window').forEach(w=>w.remove());taskApps.innerHTML='';desk.classList.add('hidden');let l=by('lock'),login=by('login');l?.classList.remove('hidden');login?.classList.add('hidden');toast2('Windows Web is shut down — click lock screen to start again')}},1200)}
 
 // Make missing About route work without altering the original renderer.
 // Add Start menu entries once.
@@ -31329,7 +31327,6 @@ function setupSearch(){
 function setupActionTray(){let tr=by('tray');if(!tr||tr.querySelector('[data-vaction]'))return;let b=document.createElement('span');b.className='trayitem';b.dataset.vaction='1';b.textContent='🔔';b.title='Action Center';b.onclick=()=>open('action');tr.prepend(b)}
 function setupContext(){if(by('vctx'))return;let m=document.createElement('div');m.id='vctx';m.style.cssText='position:fixed;display:none;z-index:100040;background:#202020;color:#fff;box-shadow:0 10px 35px #0008;min-width:220px;padding:5px';m.innerHTML=['Refresh','New folder','New text document','Open File Explorer','Settings','Personalize','Sort by name'].map(x=>'<button style="display:block;width:100%;padding:9px;text-align:left;color:#fff;background:none;border:0" data-x="'+x+'">'+x+'</button>').join('');document.body.appendChild(m);desk.addEventListener('contextmenu',e=>{if(e.target.closest('.window,#taskbar,#startMenu,#lock,#login'))return;e.preventDefault();m.style.display='block';m.style.left=Math.min(e.clientX,innerWidth-225)+'px';m.style.top=Math.min(e.clientY,innerHeight-280)+'px'});document.addEventListener('click',e=>{if(!e.target.closest('#vctx'))m.style.display='none'});m.onclick=e=>{let x=e.target.dataset.x;if(!x)return;if(x==='Refresh')toast2('Desktop refreshed');if(x==='New folder'){let n=prompt('Folder name','New Folder');if(n){state.files.push({name:n,type:'folder'});persist();notify('File Explorer','Folder created')}}if(x==='New text document'){let n=prompt('File name','New Text Document.txt');if(n){state.files.push({name:n,type:'file',text:''});persist();notify('File Explorer','File created')}}if(x==='Open File Explorer')open('explorer');if(x==='Settings')open('settings');if(x==='Personalize')open('personal');if(x==='Sort by name'){state.files.sort((a,b)=>a.name.localeCompare(b.name));persist();toast2('Files sorted by name')}m.style.display='none'}}
 function shortcuts(){if(window.__v4keys)return;window.__v4keys=1;document.addEventListener('keydown',e=>{if(e.altKey&&e.key==='F4'){let ws=Object.values(apps).sort((a,b)=>(+b.dataset.z)-(+a.dataset.z));if(ws[0])closeW(ws[0]);return}if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='escape'){e.preventDefault();open('task');return}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='e'&&!e.ctrlKey){e.preventDefault();open('explorer');return}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='r'&&!e.ctrlKey){e.preventDefault();open('cmd');return}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='d'&&!e.ctrlKey){e.preventDefault();let visible=Object.values(apps).some(w=>!w.classList.contains('hidden'));Object.values(apps).forEach(w=>visible?minW(w):focus(w));return}if(e.altKey&&e.key==='Tab'){e.preventDefault();let ws=Object.values(apps).filter(w=>!w.classList.contains('hidden')).sort((a,b)=>(+b.dataset.z)-(+a.dataset.z));if(ws.length>1)focus(ws[1])}})}
-function powerMenu(){let old=by('vpower');if(old)old.remove();let m=document.createElement('div');m.id='vpower';m.style.cssText='position:fixed;right:8px;bottom:55px;z-index:100060;background:#202020;color:#fff;padding:6px;box-shadow:0 8px 30px #0009';m.innerHTML='<button data-p="restart">↻ Restart</button><button data-p="shutdown">⏻ Shut down</button>';m.querySelectorAll('button').forEach(b=>{b.style.cssText='display:block;width:180px;padding:10px;text-align:left;background:none;color:#fff;border:0';b.onclick=()=>{m.remove();systemPower(b.dataset.p)}});document.body.appendChild(m)}
 function setupPower(){let b=document.createElement('button');b.className='v-task';b.textContent='⏻';b.title='Power';b.onclick=powerMenu;taskApps.parentElement?.appendChild(b)}
 function bootEnhance(){installStart();addDesktopIcons();setupSearch();setupActionTray();setupContext();shortcuts();setupPower();if(!by('vnotif')){let n=document.createElement('div');n.id='vnotif';document.body.appendChild(n)};if(state.settings.accent)document.documentElement.style.setProperty('--v-accent',state.settings.accent)}
 setTimeout(bootEnhance,120);setTimeout(()=>{if(!desk.classList.contains('hidden'))bootEnhance()},1500);
@@ -31435,749 +31432,29 @@ function rebuildStart(){
  left.querySelector('#win10User').onclick=()=>toast('User account is signed in','Account');
 }
 function powerPopup(anchor){
- let old=$('win10PowerMenu');
- if(old)old.remove();
-
- let m=document.createElement('div');
- m.id='win10PowerMenu';
-
- m.style.cssText=
-  'position:absolute;left:10px;bottom:48px;background:#222;color:#fff;'+
-  'padding:5px;box-shadow:0 10px 30px #0009;z-index:100100';
-
- m.innerHTML=
-  '<button data-p="restart">↻ Restart</button>'+
-  '<button data-p="shutdown">⏻ Shut down</button>'+
-  '<button data-p="lock">🔒 Lock</button>';
-
+ let old=$('win10PowerMenu');if(old)old.remove();
+ let m=document.createElement('div');m.id='win10PowerMenu';
+ m.style.cssText='position:absolute;left:10px;bottom:48px;width:218px;background:#202020f7;color:#fff;padding:4px 0;box-shadow:0 12px 32px #000b;border:1px solid #ffffff18;z-index:100100;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)';
+ m.innerHTML='<div style="padding:8px 13px 7px;color:#aaa;font-size:11px;letter-spacing:.3px">POWER</div>'+
+ '<button data-p="sleep"><span>☾</span><span><b>Sleep</b><small>Put the PC to sleep</small></span></button>'+
+ '<button data-p="shutdown"><span>⏻</span><span><b>Shut down</b><small>Turn off the simulated PC</small></span></button>'+
+ '<button data-p="restart"><span>↻</span><span><b>Restart</b><small>Restart Windows Web</small></span></button>'+
+ '<div style="height:1px;background:#ffffff14;margin:4px 8px"></div>'+
+ '<button data-p="lock"><span>🔒</span><span><b>Lock</b><small>Lock this PC</small></span></button>';
  m.querySelectorAll('button').forEach(b=>{
-
-  b.style.cssText=
-   'display:block;width:170px;padding:10px;background:none;'+
-   'color:#fff;border:0;text-align:left;cursor:pointer';
-
-  b.onclick=()=>{
-   m.remove();
-
-   systemPower(b.dataset.p);
-  };
+  b.style.cssText='display:flex;width:100%;min-height:48px;padding:7px 12px;background:transparent;color:#fff;border:0;text-align:left;cursor:pointer;align-items:center;gap:11px';
+  b.querySelector('span:first-child').style.cssText='width:25px;text-align:center;font-size:20px;font-weight:300';
+  b.querySelector('span:nth-child(2)').style.cssText='display:flex;flex-direction:column;gap:1px';
+  b.querySelector('b').style.cssText='font-size:13px;font-weight:400';
+  b.querySelector('small').style.cssText='font-size:10px;color:#999';
+  b.onmouseenter=()=>b.style.background='#ffffff12';b.onmouseleave=()=>b.style.background='transparent';
+  b.onclick=()=>{m.remove();window.systemPower(b.dataset.p)};
  });
-
  start.appendChild(m);
 }
 function previewSetup(){let pv=$('vTaskPreview');if(!pv){pv=document.createElement('div');pv.id='vTaskPreview';pv.className='v-preview';document.body.appendChild(pv)}[...taskApps.children].forEach(t=>{if(t.dataset.preview)return;t.dataset.preview='1';t.addEventListener('mouseenter',()=>{let w=t._w;if(!w)return;let r=t.getBoundingClientRect();pv.innerHTML='<div class="pv-title">'+esc(t.textContent)+'</div><div class="pv-box">'+(APPS[w.dataset.app]?.[1]||'▣')+'</div>';pv.style.left=Math.max(5,Math.min(innerWidth-270,r.left))+'px';pv.style.bottom=(innerHeight-r.top+7)+'px';pv.style.display='block'});t.addEventListener('mouseleave',()=>pv.style.display='none')})}
 function taskWatch(){previewSetup();setTimeout(taskWatch,600)}
 function syncDesktop(){}
-function fixPower(){
-
- let old=window.systemPower;
- let powerBusy=false;
-
- /* =========================================================
-    WINDOWS 10 POWER SYSTEM
-    ========================================================= */
-
- window.systemPower=function(kind){
-
-  /* ---------------------------------------------------------
-     VALID POWER ACTION
-     --------------------------------------------------------- */
-
-  if(kind!=='lock'&&kind!=='restart'&&kind!=='shutdown'){
-   return;
-  }
-
-  /* ---------------------------------------------------------
-     PREVENT DOUBLE CLICKS / MULTIPLE POWER SCREENS
-     --------------------------------------------------------- */
-
-  if(powerBusy&&kind!=='lock')return;
-
-  let existing=document.getElementById('win10PowerScreen');
-
-  if(existing){
-   if(kind==='lock')existing.remove();
-   else return;
-  }
-
-  /* =========================================================
-     LOCK
-     ========================================================= */
-
-  if(kind==='lock'){
-
-   /* Close Start */
-   if(typeof start!=='undefined'&&start){
-    start.classList.add('hidden');
-    start.style.display='none';
-   }
-
-   /* Close Start power menu */
-   let powerMenu=document.getElementById('win10PowerMenu');
-   if(powerMenu)powerMenu.remove();
-
-   /* Hide desktop containers */
-   if(typeof desk!=='undefined'&&desk){
-    desk.classList.add('hidden');
-    desk.style.display='none';
-   }
-
-   let desktop=$('desktop');
-
-   if(desktop){
-    desktop.classList.add('hidden');
-    desktop.style.display='none';
-   }
-
-   /* Hide login */
-   let login=$('login');
-
-   if(login){
-    login.classList.add('hidden');
-    login.style.display='none';
-   }
-
-   /* Show lock screen */
-   let lock=$('lock');
-
-   if(lock){
-
-    lock.classList.remove('hidden');
-    lock.style.removeProperty('display');
-
-    lock.style.visibility='visible';
-    lock.style.opacity='1';
-    lock.style.pointerEvents='auto';
-    lock.style.zIndex='100000';
-
-   }
-
-   /* Close quick panels */
-   $('win10Quick')?.style.setProperty('display','none');
-   $('win10ActionCenter')?.style.setProperty('display','none');
-   $('win10Search')?.style.setProperty('display','none');
-
-   /* Close any context menus */
-   document.querySelectorAll(
-    '.context-menu,.contextMenu,#contextMenu,.win10-context'
-   ).forEach(x=>{
-    try{x.remove()}catch(e){}
-   });
-
-   /* Reset power state */
-   powerBusy=false;
-
-   if(typeof toastW10==='function'){
-    toastW10('PC locked');
-   }
-
-   return;
-  }
-
-
-  /* =========================================================
-     BEGIN RESTART / SHUTDOWN
-     ========================================================= */
-
-  powerBusy=true;
-
-  /* Close Start immediately */
-
-  if(typeof start!=='undefined'&&start){
-   start.classList.add('hidden');
-   start.style.display='none';
-   start.setAttribute('aria-hidden','true');
-  }
-
-  /* Remove Start power popup */
-
-  let powerMenu=document.getElementById('win10PowerMenu');
-
-  if(powerMenu){
-   powerMenu.remove();
-  }
-
-  /* ---------------------------------------------------------
-     CREATE POWER SCREEN
-     --------------------------------------------------------- */
-
-  let ov=document.createElement('div');
-
-  ov.id='win10PowerScreen';
-
-  ov.setAttribute('role','status');
-
-  ov.setAttribute(
-   'aria-label',
-   kind==='restart'?'Restarting Windows':'Shutting down Windows'
-  );
-
-  ov.style.cssText=
-   'position:fixed;'+
-   'inset:0;'+
-   'width:100vw;'+
-   'height:100vh;'+
-   'z-index:100200;'+
-   'background:#0078D7;'+
-   'color:#fff;'+
-   'display:flex;'+
-   'align-items:center;'+
-   'justify-content:center;'+
-   'overflow:hidden;'+
-   'font-family:"Segoe UI",Arial,sans-serif;'+
-   'user-select:none;'+
-   'cursor:default;'+
-   'opacity:1;'+
-   'transition:opacity .55s ease;';
-
-  /* =========================================================
-     POWER SCREEN HTML
-     ========================================================= */
-
-  ov.innerHTML=
-   '<div id="win10PowerContent" style="'+
-    'display:flex;'+
-    'flex-direction:column;'+
-    'align-items:center;'+
-    'justify-content:center;'+
-    'min-width:240px;'+
-    'text-align:center;'+
-   '">'+
-
-    '<div id="win10PowerDots" style="'+
-     'position:relative;'+
-     'width:64px;'+
-     'height:64px;'+
-     'margin:0 auto 25px;'+
-     'transform-origin:50% 50%;'+
-    '"></div>'+
-
-    '<div id="win10PowerText" style="'+
-     'font-size:24px;'+
-     'line-height:32px;'+
-     'font-weight:300;'+
-     'letter-spacing:.1px;'+
-     'white-space:nowrap;'+
-    '">'+
-     (kind==='restart'?'Restarting':'Shutting down')+
-    '</div>'+
-
-   '</div>';
-
-  document.body.appendChild(ov);
-
-
-  /* =========================================================
-     WINDOWS 10 DOT ANIMATION CSS
-     ========================================================= */
-
-  let powerCSS=document.getElementById('win10PowerCSS');
-
-  if(!powerCSS){
-
-   powerCSS=document.createElement('style');
-
-   powerCSS.id='win10PowerCSS';
-
-   powerCSS.textContent=
-
-    '@keyframes win10PowerRingSpin{'+
-     '0%{transform:rotate(0deg)}'+
-     '100%{transform:rotate(360deg)}'+
-    '}'+
-
-    '@keyframes win10PowerDotPulse{'+
-     '0%,100%{transform:scale(.72);opacity:.25}'+
-     '50%{transform:scale(1);opacity:1}'+
-    '}'+
-
-    '@keyframes win10PowerFadeIn{'+
-     '0%{opacity:0}'+
-     '100%{opacity:1}'+
-    '}'+
-
-    '#win10PowerScreen #win10PowerDots{'+
-     'animation:win10PowerRingSpin 1.05s linear infinite;'+
-    '}'+
-
-    '#win10PowerScreen #win10PowerText{'+
-     'animation:win10PowerFadeIn .35s ease-out both;'+
-    '}';
-
-   document.head.appendChild(powerCSS);
-  }
-
-
-  /* =========================================================
-     BUILD WINDOWS STYLE DOT RING
-     ========================================================= */
-
-  let dots=$('win10PowerDots');
-
-  if(dots){
-
-   /*
-      Eight small white dots around a circular path.
-      The entire ring rotates rather than having random
-      independent movement.
-   */
-
-   let dotCount=8;
-   let radius=24;
-
-   for(let i=0;i<dotCount;i++){
-
-    let d=document.createElement('div');
-
-    let angle=i*(360/dotCount);
-
-    let opacity=.18+(i*.10);
-
-    d.className='win10-power-dot';
-
-    d.style.cssText=
-     'position:absolute;'+
-     'left:50%;'+
-     'top:50%;'+
-     'width:6px;'+
-     'height:6px;'+
-     'margin:-3px;'+
-     'border-radius:50%;'+
-     'background:#fff;'+
-     'opacity:'+Math.min(opacity,1)+';'+
-     'transform:rotate('+angle+'deg) translateY(-'+radius+'px);'+
-     'transform-origin:50% 50%;';
-
-    dots.appendChild(d);
-   }
-  }
-
-
-  /* =========================================================
-     ADD POWER SCREEN
-     ========================================================= */
-
-  let powerStartedAt=Date.now();
-
-  /* =========================================================
-     CLOSE ALL SIMULATED WINDOWS
-     ========================================================= */
-
-  setTimeout(()=>{
-
-   /*
-      Close every registered simulator application.
-      Do not throw if one of them has already been removed.
-   */
-
-   try{
-
-    if(typeof apps!=='undefined'&&apps){
-
-     Object.keys(apps).forEach(key=>{
-
-      let w=apps[key];
-
-      try{
-
-       if(w&&typeof w.remove==='function'){
-        w.remove();
-       }
-
-      }catch(e){}
-
-     });
-
-     apps={};
-    }
-
-   }catch(e){}
-
-
-   /* ---------------------------------------------------------
-      CLEAR TASKBAR APPLICATION BUTTONS
-      --------------------------------------------------------- */
-
-   try{
-
-    if(typeof taskApps!=='undefined'&&taskApps){
-     taskApps.innerHTML='';
-    }
-
-   }catch(e){}
-
-
-   /* ---------------------------------------------------------
-      HIDE DESKTOP
-      --------------------------------------------------------- */
-
-   try{
-
-    if(typeof desk!=='undefined'&&desk){
-     desk.classList.add('hidden');
-     desk.style.display='none';
-    }
-
-   }catch(e){}
-
-
-   let desktop=$('desktop');
-
-   if(desktop){
-
-    desktop.classList.add('hidden');
-    desktop.style.display='none';
-
-   }
-
-
-   /* ---------------------------------------------------------
-      HIDE LOGIN DURING POWER TRANSITION
-      --------------------------------------------------------- */
-
-   let login=$('login');
-
-   if(login){
-
-    login.classList.add('hidden');
-    login.style.display='none';
-
-   }
-
-
-   /* ---------------------------------------------------------
-      HIDE LOCK DURING POWER TRANSITION
-      --------------------------------------------------------- */
-
-   let lock=$('lock');
-
-   if(lock){
-
-    lock.classList.add('hidden');
-    lock.style.display='none';
-
-   }
-
-
-   /* =========================================================
-      RESTART
-      ========================================================= */
-
-   if(kind==='restart'){
-
-    /*
-       The important part:
-
-       Restart does NOT simply remove the power screen and
-       reveal the desktop.
-
-       It explicitly resets the simulator to the login state.
-    */
-
-    if(desktop){
-
-     desktop.classList.add('hidden');
-     desktop.style.display='none';
-
-    }
-
-    try{
-
-     if(typeof desk!=='undefined'&&desk){
-
-      desk.classList.add('hidden');
-      desk.style.display='none';
-
-     }
-
-    }catch(e){}
-
-
-    /* Hide lock */
-
-    if(lock){
-
-     lock.classList.add('hidden');
-     lock.style.display='none';
-
-    }
-
-
-    /* Show login */
-
-    if(login){
-
-     login.classList.remove('hidden');
-     login.style.removeProperty('display');
-     login.style.visibility='visible';
-     login.style.opacity='1';
-     login.style.pointerEvents='auto';
-     login.style.zIndex='100000';
-
-    }
-
-
-    /* -------------------------------------------------------
-       RESET LOGIN FORM
-       ------------------------------------------------------- */
-
-    let pin=$('pin');
-
-    if(pin){
-
-     pin.value='';
-
-     /*
-        Do not autofocus immediately while the power screen
-        is still visible.
-     */
-
-    }
-
-    let hint=$('pinHint');
-
-    if(hint){
-
-     hint.textContent='Enter your PIN to continue';
-     hint.style.color='';
-
-    }
-
-
-    /* -------------------------------------------------------
-       REMOVE POWER SCREEN AFTER LOGIN IS READY
-       ------------------------------------------------------- */
-
-    setTimeout(()=>{
-
-     /*
-        Make sure desktop did not get restored by another
-        initialization layer.
-     */
-
-     if(desktop){
-
-      desktop.classList.add('hidden');
-      desktop.style.display='none';
-
-     }
-
-     try{
-
-      if(typeof desk!=='undefined'&&desk){
-
-       desk.classList.add('hidden');
-       desk.style.display='none';
-
-      }
-
-     }catch(e){}
-
-
-     /*
-        Fade the power screen away so the login appears
-        underneath it instead of abruptly popping in.
-     */
-
-     ov.style.opacity='0';
-
-     setTimeout(()=>{
-
-      try{
-       ov.remove();
-      }catch(e){}
-
-      powerBusy=false;
-
-      /*
-         Focus PIN after the transition has completely ended.
-      */
-
-      setTimeout(()=>{
-
-       let pin=$('pin');
-
-       if(pin&&login&&!login.classList.contains('hidden')){
-
-        try{
-         pin.focus();
-        }catch(e){}
-
-       }
-
-      },80);
-
-     },560);
-
-    },650);
-
-    return;
-   }
-
-
-   /* =========================================================
-      SHUT DOWN
-      ========================================================= */
-
-   /*
-      Login and lock are hidden while the computer is
-      powered off.
-   */
-
-   if(login){
-
-    login.classList.add('hidden');
-    login.style.display='none';
-
-   }
-
-   if(lock){
-
-    lock.classList.add('hidden');
-    lock.style.display='none';
-
-   }
-
-
-   /* ---------------------------------------------------------
-      KEEP SHUTDOWN SCREEN VISIBLE LONG ENOUGH TO FEEL REAL
-      --------------------------------------------------------- */
-
-   let elapsed=Date.now()-powerStartedAt;
-
-   let remaining=Math.max(0,850-elapsed);
-
-   setTimeout(()=>{
-
-    /* -------------------------------------------------------
-       Fade from Windows blue into black
-       ------------------------------------------------------- */
-
-    ov.style.transition=
-     'opacity .65s ease,background .65s ease';
-
-    ov.style.opacity='0';
-
-    setTimeout(()=>{
-
-     /* ------------------------------------------------------
-        TURN INTO POWERED-OFF SCREEN
-        ------------------------------------------------------ */
-
-     ov.style.transition='none';
-
-     ov.style.opacity='1';
-
-     ov.style.background='#000';
-
-     ov.innerHTML='';
-
-     ov.style.cursor='pointer';
-
-     ov.setAttribute(
-      'aria-label',
-      'Computer powered off. Click to start.'
-     );
-
-
-     /* ------------------------------------------------------
-        Powered-off click target
-        ------------------------------------------------------ */
-
-     let offMessage=document.createElement('div');
-
-     offMessage.style.cssText=
-      'position:absolute;'+
-      'inset:0;'+
-      'display:flex;'+
-      'align-items:center;'+
-      'justify-content:center;'+
-      'color:#777;'+
-      'font-family:"Segoe UI",Arial,sans-serif;'+
-      'font-size:14px;'+
-      'opacity:0;'+
-      'transition:opacity .8s ease;'+
-      'pointer-events:none;';
-
-     offMessage.textContent='';
-
-     ov.appendChild(offMessage);
-
-
-     /* ------------------------------------------------------
-        Wake computer
-        ------------------------------------------------------ */
-
-     let waking=false;
-
-     ov.onclick=()=>{
-
-      if(waking)return;
-
-      waking=true;
-
-      ov.style.cursor='default';
-
-      /*
-         Remove click handler immediately so repeated clicks
-         cannot create multiple reloads.
-      */
-
-      ov.onclick=null;
-
-      /*
-         Restart the simulator through its normal startup
-         sequence instead of manually constructing another
-         desktop state.
-      */
-
-      ov.style.transition='opacity .45s ease';
-
-      ov.style.opacity='0';
-
-      setTimeout(()=>{
-
-       try{
-
-        location.reload();
-
-       }catch(e){
-
-        /*
-           Emergency fallback if reload is blocked.
-        */
-
-        window.location.href=window.location.href;
-
-       }
-
-      },450);
-
-     };
-
-    },650);
-
-   },remaining);
-
-  },1800);
-
-
-  /* =========================================================
-     SAFETY CLEANUP
-     ========================================================= */
-
-  /*
-     If something goes wrong and the overlay somehow survives
-     indefinitely, don't allow it to stack with another power
-     screen.
-  */
-
-  ov.addEventListener('remove',()=>{
-   powerBusy=false;
-  });
-
- };
-}
 function keyboard(){
  if(window.__win10FinalKeys)return;window.__win10FinalKeys=1;
  document.addEventListener('keydown',e=>{
@@ -32218,8 +31495,7 @@ function patchStartButton(){
 function finalInit(){
  rebuildStart();
  syncDesktop();
- fixPower();
- patchStartButton();
+patchStartButton();
  keyboard();
  taskWatch();
 
@@ -32779,7 +32055,7 @@ function patchLogin(){
  login.dataset.patched='1';
 
  btn.onclick=()=>{
-  if(pin.value==='Lucia1213'){
+  if(pin.value===(window.__w10GetPin?window.__w10GetPin():(localStorage.getItem('win10sim_pin_additive_v1')||'Lucia1213'))){
 
    login.classList.add('hidden');
    login.style.display='none';
@@ -32873,11 +32149,6 @@ const onlineWalls=[
  ['Night Mountains','https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2560&q=88']
 ];
 function scenicDefault(){try{localStorage.setItem('win10_wall_name','Alpine Lake');localStorage.setItem('win10_online_wall',scenicPhoto)}catch(e){};let d=q('#desktop'),l=q('#lock');[d,l].forEach((x,i)=>{if(x){x.style.backgroundImage=(i?'linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.25)),':'')+'url("'+scenicPhoto+'")';x.style.backgroundSize='cover';x.style.backgroundPosition='center'}})}
-function bootCinematic(){if(q('#win10CinematicBoot'))return;let b=document.createElement('div');b.id='win10CinematicBoot';b.innerHTML='<svg class="w10bootlogo" viewBox="0 0 88 88" aria-label="Windows"><path d="M7 10 40 6v35H7V10zm39-5 35-4v40H46V5zM7 46h33v36L7 78V46zm39 0h35v42l-35-4V46z"/></svg><div class="w10dots"><i class="w10dot"></i><i class="w10dot"></i><i class="w10dot"></i><i class="w10dot"></i></div><div class="w10boottext">Starting Web Desktop</div>';document.body.appendChild(b);setTimeout(()=>{b.style.opacity='0';b.style.pointerEvents='none';setTimeout(()=>b.remove(),700)},900)}
-function powerMenu(){let old=q('.w10-power-menu');if(old){old.remove();return}let p=document.createElement('div');p.className='w10-power-menu';p.innerHTML='<div class="w10-power-head"><b>Power</b>Choose what you want to do</div><div class="w10-power-grid"><button class="w10-power-item" data-p="sleep"><span class="pi">☾</span><span><b>Sleep</b><small>Put the PC into simulated sleep</small></span></button><button class="w10-power-item" data-p="shutdown"><span class="pi">⏻</span><span><b>Shut down</b><small>Turn off the simulated PC</small></span></button><button class="w10-power-item" data-p="restart"><span class="pi">↻</span><span><b>Restart</b><small>Restart and show the boot screen</small></span></button><button class="w10-power-item" data-p="signout"><span class="pi">⇥</span><span><b>Sign out</b><small>Close the current Youssef session</small></span></button><button class="w10-power-item" data-p="lock"><span class="pi">🔒</span><span><b>Lock</b><small>Return to the sign-in screen</small></span></button></div>';document.body.appendChild(p);p.querySelectorAll('[data-p]').forEach(x=>x.onclick=()=>doPower(x.dataset.p));setTimeout(()=>document.addEventListener('pointerdown',function close(e){if(!p.contains(e.target)&&!e.target.closest('.w10-power-trigger')){p.remove();document.removeEventListener('pointerdown',close)}},{once:true}),0)}
-function toLogin(){qa('.window').forEach(w=>w.remove());q('#desktop')?.classList.add('hidden');q('#lock')?.classList.add('hidden');q('#login')?.classList.remove('hidden');let pin=q('#pin');if(pin)pin.value='';let h=q('#pinHint');if(h)h.textContent='Enter your PIN to continue'}
-function doPower(type){q('.w10-power-menu')?.remove();if(type==='lock'){q('#desktop')?.classList.add('hidden');q('#login')?.classList.add('hidden');q('#lock')?.classList.remove('hidden');return}if(type==='signout'||type==='shutdown'){let ov=document.createElement('div');ov.id='w10PowerFade';ov.style='position:fixed;inset:0;background:#000;z-index:100700;display:flex;align-items:center;justify-content:center;color:#fff;font:16px Segoe UI;';ov.textContent=type==='shutdown'?'Shutting down…':'Signing out…';document.body.appendChild(ov);setTimeout(()=>{ov.remove();toLogin()},850);return}if(type==='sleep'){let ov=document.createElement('div');ov.style='position:fixed;inset:0;background:#000;z-index:100700;display:flex;align-items:center;justify-content:center;color:#aaa;font:15px Segoe UI;';ov.textContent='Sleeping · click anywhere to wake';document.body.appendChild(ov);ov.onclick=()=>{ov.remove();toastW10?.('Welcome back')};return}if(type==='restart'){let ov=document.createElement('div');ov.style='position:fixed;inset:0;background:#000;z-index:100700;display:flex;align-items:center;justify-content:center;color:#aaa;font:15px Segoe UI;';ov.textContent='Restarting…';document.body.appendChild(ov);setTimeout(()=>{ov.remove();toLogin();bootCinematic();setTimeout(()=>q('#login')?.classList.add('hidden'),1000);setTimeout(()=>{q('#login')?.classList.add('hidden');q('#desktop')?.classList.remove('hidden')},1800)},700)}}
-function hookPower(){qa('[data-power],#powerBtn,.powerBtn,.trayPower').forEach(b=>{if(b.dataset.ultra)return;b.dataset.ultra='1';b.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();powerMenu()},true)});let tray=q('#tray');if(tray&&!tray.querySelector('.w10-power-trigger')){let b=document.createElement('span');b.className='trayitem w10-power-trigger';b.textContent='⏻';b.title='Power';b.onclick=e=>{e.stopPropagation();powerMenu()};tray.appendChild(b)}}
 function extraApps(){
   /* Disabled: these were placeholder-style extra apps with non-functional 'Open controls'. */
   document.querySelectorAll('#startMenu .w10-extra-apps,#startMenu .mega-extra-apps').forEach(x=>x.remove());
@@ -32888,7 +32159,7 @@ function addAppsToStart(){
   document.querySelectorAll('#startMenu .w10-extra-apps,#startMenu .mega-extra-apps').forEach(x=>x.remove());
 }
 function animateIcons(){qa('#icons .icon,#icons .deskicon').forEach((x,i)=>{x.style.animationDelay=(i*45)+'ms';x.classList.add('w10-icon-enter')})}
-function init(){scenicDefault();bootCinematic();hookPower();document.querySelector('[data-ultra-apps]')?.remove();document.querySelectorAll('#startMenu .w10-extra-apps,#startMenu .mega-extra-apps').forEach(x=>x.remove());animateIcons();let s=document.createElement('style');s.textContent='@keyframes iconEnter{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}#icons .w10-icon-enter{animation:iconEnter .35s ease both}';document.head.appendChild(s)}
+function init(){scenicDefault();document.querySelector('[data-ultra-apps]')?.remove();document.querySelectorAll('#startMenu .w10-extra-apps,#startMenu .mega-extra-apps').forEach(x=>x.remove());animateIcons();let s=document.createElement('style');s.textContent='@keyframes iconEnter{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}#icons .w10-icon-enter{animation:iconEnter .35s ease both}';document.head.appendChild(s)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else setTimeout(init,50);
 })();
 </script>
@@ -32903,15 +32174,10 @@ const fallback=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
 const fallbackURL='url("data:image/svg+xml,'+encodeURIComponent(fallback)+'")';
 const photo='https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=2560&q=88';
 function setScenic(){let d=qs('#desktop'),l=qs('#lock');let bg='url("'+photo+'"),'+fallbackURL;[d,l].forEach((x,i)=>{if(!x)return;x.style.backgroundImage=(i?'linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.25)),':'')+bg;x.style.backgroundSize='cover';x.style.backgroundPosition='center';x.style.backgroundColor='#31505b'});try{localStorage.setItem('win10_online_wall',photo);localStorage.setItem('win10_wall_name','Alpine Lake')}catch(e){}}
-function cinematic(){let b=qs('#win10CinematicBoot');if(!b){b=document.createElement('div');b.id='win10CinematicBoot';b.innerHTML='<svg class="w10bootlogo" viewBox="0 0 88 88"><path d="M7 10 40 6v35H7V10zm39-5 35-4v40H46V5zM7 46h33v36L7 78V46zm39 0h35v42l-35-4V46z"/></svg><div class="w10dots"><i class="w10dot"></i><i class="w10dot"></i><i class="w10dot"></i><i class="w10dot"></i></div><div class="w10boottext">Starting Windows Web Desktop</div>';document.body.appendChild(b)}else b.style.display='flex';setTimeout(()=>{b.style.opacity='0';b.style.pointerEvents='none';setTimeout(()=>b.remove(),700)},1350)}
 function login(){all('.window').forEach(x=>x.remove());qs('#desktop')?.classList.add('hidden');qs('#lock')?.classList.add('hidden');qs('#login')?.classList.remove('hidden');qs('#pin')?.focus();let h=qs('#pinHint');if(h)h.textContent='Enter your PIN to continue'}
-function restart(){let o=document.createElement('div');o.id='w10Restart';o.style='position:fixed;inset:0;background:#000;z-index:100800;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#aaa;font:15px Segoe UI';o.innerHTML='<div style="font-size:13px;margin-bottom:18px">Restarting…</div><div class="w10dots"><i class="w10dot"></i><i class="w10dot"></i><i class="w10dot"></i><i class="w10dot"></i></div>';document.body.appendChild(o);setTimeout(()=>{o.remove();login();cinematic()},900)}
-function powerMenu(){let old=qs('.w10-power-menu');if(old){old.remove();return}let p=document.createElement('div');p.className='w10-power-menu';p.innerHTML='<div class="w10-power-head"><b>Power</b>Choose an option</div><div class="w10-power-grid"><button class="w10-power-item" data-p="sleep"><span class="pi">☾</span><span><b>Sleep</b><small>Keep your session and wake later</small></span></button><button class="w10-power-item" data-p="shutdown"><span class="pi">⏻</span><span><b>Shut down</b><small>Turn off Web Desktop and return to sign-in</small></span></button><button class="w10-power-item" data-p="restart"><span class="pi">↻</span><span><b>Restart</b><small>Restart the simulated PC</small></span></button><button class="w10-power-item" data-p="signout"><span class="pi">⇥</span><span><b>Sign out</b><small>End the current session</small></span></button><button class="w10-power-item" data-p="lock"><span class="pi">🔒</span><span><b>Lock</b><small>Go to the lock screen</small></span></button></div>';document.body.appendChild(p);p.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{let t=b.dataset.p;p.remove();if(t==='restart')return restart();if(t==='lock'){qs('#desktop')?.classList.add('hidden');qs('#login')?.classList.add('hidden');qs('#lock')?.classList.remove('hidden');return}if(t==='sleep'){let s=document.createElement('div');s.style='position:fixed;inset:0;background:#000;z-index:100800;display:flex;align-items:center;justify-content:center;color:#aaa;font:15px Segoe UI';s.textContent='Sleeping · click to wake';document.body.appendChild(s);s.onclick=()=>s.remove();return}login()})}
-function hookAllPower(){let targets=()=>all('button,span,.powerBtn,.trayitem');targets().forEach(b=>{if(b.dataset.powerHook)return;let txt=(b.textContent||'').trim().toLowerCase();if(txt==='⏻'||txt==='power'){b.dataset.powerHook='1';b.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();powerMenu()},true)}})}
 function addOnlineGallery(){let settings=qs('#win10SettingsPro');if(!settings||settings.dataset.gallery2)return;settings.dataset.gallery2='1';let section=settings.querySelector('[data-section="personal"]');if(!section)return;let h=document.createElement('div');h.style='margin-top:22px;padding-top:18px;border-top:1px solid #0002';h.innerHTML='<h2>Online wallpaper gallery</h2><p style="color:#666">Fresh scenic photography from the web. Offline fallback is built in.</p><div id="w10OnlineGallery" class="w10wallgrid"></div>';section.appendChild(h);let g=h.querySelector('#w10OnlineGallery');[['Alpine Lake',photo],['Forest', 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=2560&q=88'],['Ocean','https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2560&q=88'],['Mountain Valley','https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2560&q=88'],['Coast','https://images.unsplash.com/photo-1476673160081-cf065607f449?auto=format&fit=crop&w=2560&q=88'],['Lake Sunrise','https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1920&q=88']].forEach(([n,u])=>{let b=document.createElement('button');b.className='w10wall';b.style.backgroundImage='url("'+u+'")';b.innerHTML='<b>'+n+'</b>';b.onclick=()=>{window.win10SetWallpaper?.('url("'+u+'")',n);try{localStorage.setItem('win10_online_wall',u)}catch(e){}};g.appendChild(b)})}
-function init(){setScenic();hookAllPower();addOnlineGallery();setTimeout(addOnlineGallery,700)}
+function init(){setScenic();addOnlineGallery();setTimeout(addOnlineGallery,700)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else setTimeout(init,20);
-window.win10Restart=restart;window.win10PowerMenu=powerMenu;
 })();
 </script>
 <!-- FINAL BOOT CLEANUP: one boot experience, no stacked legacy boot overlays -->
@@ -33212,132 +32478,7 @@ window.win10FinalFix={toggleStart,dedupeTaskbarPower};
 /* prevent the old Start handlers from visually fighting the final one */
 #startBtn{cursor:pointer!important;user-select:none!important}
 </style>
-<script>
-(()=>{
-'use strict';
-const by=id=>document.getElementById(id);
-const hideStart=()=>{const m=by('startMenu');if(!m)return;m.classList.add('hidden');m.style.display='none';m.style.visibility='hidden';m.style.opacity='0'};
-const showStart=()=>{const m=by('startMenu');if(!m)return;m.classList.remove('hidden');m.style.display='grid';m.style.visibility='visible';m.style.opacity='1';const i=m.querySelector('input');if(i)setTimeout(()=>i.focus(),0)};
-function hardStartButton(){
-  const old=by('startBtn');
-  if(!old||old.dataset.hardStart==='1')return;
-  const b=old.cloneNode(true);
-  b.dataset.hardStart='1';
-  b.removeAttribute('data-final-click');
-  b.removeAttribute('data-user-start-fix');
-  old.replaceWith(b);
-  b.innerHTML='<svg viewBox="0 0 100 100" aria-hidden="true" style="width:20px;height:20px"><path fill="#fff" d="M5 13 47 7v40H5zM53 6l42-6v47H53zM5 53h42v40L5 87zM53 53h42v47l-42-6z"/></svg>';
-  b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();const m=by('startMenu');if(!m)return;if(m.classList.contains('hidden')||getComputedStyle(m).display==='none')showStart();else hideStart()},true);
-  b.addEventListener('pointerdown',e=>{e.stopPropagation()},true);
-}
-function hardOutsideClose(){
-  if(document.documentElement.dataset.w10Outside==='1')return;
-  document.documentElement.dataset.w10Outside='1';
-  document.addEventListener('pointerdown',e=>{const m=by('startMenu'),b=by('startBtn');if(!m||m.classList.contains('hidden'))return;if(!e.target.closest('#startMenu')&&!e.target.closest('#startBtn'))hideStart()},true);
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')hideStart()},true);
-}
-function runtimeBoot(text='Starting Windows'){
-  document.getElementById('w10-runtime-boot')?.remove();
-  const o=document.createElement('div');o.id='w10-runtime-boot';
-  o.innerHTML='<svg class="r-logo" viewBox="0 0 100 100" aria-label="Windows"><path fill="#00adef" d="M5 13 47 7v40H5zM53 6l42-6v47H53zM5 53h42v40L5 87zM53 53h42v47l-42-6z"/></svg><div class="r-spinner">'+Array.from({length:8},()=>'<i></i>').join('')+'</div><div class="r-text">'+text+'</div>';
-  document.body.appendChild(o);return o;
-}
-function runtimeLogin(){
-  by('desktop')?.classList.add('hidden');
-  by('lock')?.classList.add('hidden');
-  by('startMenu')?.classList.add('hidden');
-  by('login')?.classList.remove('hidden');
-  const p=by('pin');if(p)p.value='';
-}
-function cleanOldBoots(){document.querySelectorAll('#win10CinematicBoot').forEach(x=>x.remove());}
-function patchPower(){
-  window.w10RuntimePower=function(type){
-    document.querySelectorAll('.w10-power-menu').forEach(x=>x.remove());
-    if(type==='lock'){runtimeLogin();by('lock')?.classList.remove('hidden');return}
-    if(type==='signout'||type==='shutdown'){
-      const o=runtimeBoot(type==='shutdown'?'Shutting down':'Signing out');
-      setTimeout(()=>{o.style.opacity='0';setTimeout(()=>{o.remove();runtimeLogin()},450)},850);return;
-    }
-    if(type==='restart'){
-      by('desktop')?.classList.add('hidden');by('lock')?.classList.add('hidden');by('login')?.classList.add('hidden');
-      const o=runtimeBoot('Restarting Windows');
-      setTimeout(()=>{o.style.opacity='0';setTimeout(()=>{o.remove();runtimeLogin()},450)},1800);return;
-    }
-    if(type==='sleep'){
-      const o=runtimeBoot('Sleeping');o.style.cursor='pointer';o.onclick=()=>o.remove();return;
-    }
-  };
-  window.systemPower=window.w10RuntimePower;
-}
-function init(){
-  cleanOldBoots();hardStartButton();hardOutsideClose();patchPower();
-  /* Replace the old boot visuals immediately with the one deterministic spinner. */
-  const boot=by('boot');
-  if(boot){
-    boot.innerHTML='<svg class="r-logo" viewBox="0 0 100 100" aria-label="Windows"><path fill="#00adef" d="M5 13 47 7v40H5zM53 6l42-6v47H53zM5 53h42v40L5 87zM53 53h42v47l-42-6z"/></svg><div class="r-spinner">'+Array.from({length:8},()=>'<i></i>').join('')+'</div><div class="r-text">Starting Windows</div>';
-    boot.classList.remove('hidden');boot.style.display='flex';
-  }
-  setTimeout(hardStartButton,300);setTimeout(cleanOldBoots,300);setTimeout(cleanOldBoots,1000);
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-window.w10RuntimeRepair={showStart,hideStart,runtimeBoot,runtimeLogin};
-})();
-</script>
-<!-- FINAL BUGFIX V18: deterministic Start click, single power control, compact boot + real radial dots -->
-<style id="w10-final-bugfix-v18">
-#startBtn{position:relative!important;z-index:100500!important;pointer-events:auto!important;touch-action:manipulation!important}
-/* Keep the Start menu above the desktop but below system dialogs */
-#startMenu{z-index:100400!important}
-/* Compact centered Windows boot */
-#boot{z-index:100900!important;background:#000!important}
-#boot .r-logo,.w10-real-boot .r-logo{width:64px!important;height:64px!important;margin:0 0 34px!important;display:block!important}
-#boot .r-spinner,.w10-real-boot .r-spinner{position:relative!important;width:38px!important;height:38px!important;margin:0!important;animation:w10SpinnerTurn 1.05s linear infinite!important}
-#boot .r-spinner i,.w10-real-boot .r-spinner i{position:absolute!important;left:50%!important;top:50%!important;width:5px!important;height:5px!important;margin:-2.5px!important;border-radius:50%!important;background:#fff!important;opacity:.12!important;transform:rotate(var(--r)) translateY(-14px) scale(.72)!important;transform-origin:2.5px 14px!important;animation:w10DotFade 1.05s linear infinite!important}
-#boot .r-spinner i:nth-child(1),.w10-real-boot .r-spinner i:nth-child(1){--r:0deg;animation-delay:0s!important}
-#boot .r-spinner i:nth-child(2),.w10-real-boot .r-spinner i:nth-child(2){--r:45deg;animation-delay:-.131s!important}
-#boot .r-spinner i:nth-child(3),.w10-real-boot .r-spinner i:nth-child(3){--r:90deg;animation-delay:-.262s!important}
-#boot .r-spinner i:nth-child(4),.w10-real-boot .r-spinner i:nth-child(4){--r:135deg;animation-delay:-.393s!important}
-#boot .r-spinner i:nth-child(5),.w10-real-boot .r-spinner i:nth-child(5){--r:180deg;animation-delay:-.524s!important}
-#boot .r-spinner i:nth-child(6),.w10-real-boot .r-spinner i:nth-child(6){--r:225deg;animation-delay:-.655s!important}
-#boot .r-spinner i:nth-child(7),.w10-real-boot .r-spinner i:nth-child(7){--r:270deg;animation-delay:-.786s!important}
-#boot .r-spinner i:nth-child(8),.w10-real-boot .r-spinner i:nth-child(8){--r:315deg;animation-delay:-.917s!important}
-@keyframes w10SpinnerTurn{to{transform:rotate(360deg)}}
-@keyframes w10DotFade{0%,100%{opacity:.12;transform:rotate(var(--r)) translateY(-14px) scale(.72)}38%{opacity:1;transform:rotate(var(--r)) translateY(-14px) scale(1)}62%{opacity:.12;transform:rotate(var(--r)) translateY(-14px) scale(.72)}}
-#boot .r-text{font-size:12px!important;margin-top:20px!important;color:#8d8d8d!important}
-/* remove every taskbar power duplicate; power lives in the Start menu */
-#taskbar .w10-power-trigger,#taskbar .w10-duplicate-power,#taskbar .trayPower,#taskbar .powerBtn{display:none!important}
-</style>
-<script>
-(()=>{
-'use strict';
-const $=id=>document.getElementById(id);
-const hide=()=>{const m=$('startMenu');if(!m)return;m.classList.add('hidden');m.style.display='none';m.style.visibility='hidden';m.style.opacity='0'};
-const show=()=>{const m=$('startMenu');if(!m)return;m.classList.remove('hidden');m.style.display='flex';m.style.visibility='visible';m.style.opacity='1';};
-/* Remove all old handlers by replacing the button once, then use ONE click listener. */
-function repairStart(){
- const old=$('startBtn'); if(!old)return;
- if(old.dataset.v18==='1')return;
- const b=old.cloneNode(true); b.dataset.v18='1';
- b.onclick=null;
- b.innerHTML='<svg viewBox="0 0 100 100" aria-hidden="true" style="width:20px;height:20px;display:block"><path fill="#fff" d="M5 13 47 7v40H5zM53 6l42-6v47H53zM5 53h42v40L5 87zM53 53h42v47l-42-6z"/></svg>';
- old.replaceWith(b);
- b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const m=$('startMenu');if(!m)return;if(m.classList.contains('hidden')||getComputedStyle(m).display==='none')show();else hide();},false);
-}
-function repairPower(){
- document.querySelectorAll('#taskbar .w10-power-trigger,#taskbar .w10-duplicate-power,#taskbar .trayPower,#taskbar .powerBtn').forEach(x=>x.remove());
- /* Also remove literal power tray items generated by older layers. */
- const tray=$('tray'); if(tray) [...tray.children].forEach(x=>{const t=(x.textContent||'').trim().toLowerCase();if(t==='⏻'||t==='power')x.remove()});
-}
-function repairBoot(){
- const b=$('boot');if(!b)return;
- b.innerHTML='<svg class="r-logo" viewBox="0 0 100 100" aria-label="Windows"><path fill="#00adef" d="M5 13 47 7v40H5zM53 6l42-6v47H53zM5 53h42v40L5 87zM53 53h42v47l-42-6z"/></svg><div class="r-spinner">'+Array.from({length:8},()=>'<i></i>').join('')+'</div><div class="r-text">Starting Windows</div>';
- b.style.display='flex';b.classList.remove('hidden');
-}
-function init(){repairStart();repairPower();repairBoot();setTimeout(repairStart,300);setTimeout(repairPower,300);setTimeout(repairStart,1200);setTimeout(repairPower,1200);}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-window.w10V18={repairStart,repairPower,repairBoot,showStart:show,hideStart:hide};
-})();
-</script>
+
 <!-- FINAL HARD PATCH V19: single Start event gate + faithful Windows 10 boot spinner -->
 <style id="w10-hard-patch-v19">
 /* Windows 10 style boot: small blue logo + eight-point rotating/fading ring */
@@ -33444,78 +32585,7 @@ window.w10HardV19={toggleStartFinal,closeStart,openStart,fixBoot,normalizePower}
 #w10-v20-power button:hover{background:#ffffff12}
 #w10-v20-power .danger{color:#fff}
 </style>
-<script>
-(()=>{
-'use strict';
-const q=id=>document.getElementById(id);
-function v20HidePower(){q('w10-v20-power')?.remove()}
-function v20ClearDesktop(){
-  q('desktop')?.classList.add('hidden');
-  q('startMenu')?.classList.add('hidden');
-  document.querySelectorAll('.window').forEach(w=>w.remove());
-  const ta=q('taskApps');if(ta)ta.innerHTML='';
-}
-function v20BootOverlay(text){
-  document.getElementById('w10-runtime-boot')?.remove();
-  const o=document.createElement('div');o.id='w10-runtime-boot';
-  o.innerHTML='<svg class="r-logo" viewBox="0 0 100 100" aria-label="Windows"><path fill="#0078d7" d="M5 13 47 7v40H5zM53 6l42-6v47H53zM5 53h42v40L5 87zM53 53h42v47l-42-6z"/></svg><div class="r-spinner">'+Array.from({length:8},(_,i)=>'<i style="--v20r:'+i*45+'deg"></i>').join('')+'</div>';
-  document.body.appendChild(o);return o;
-}
-function v20Shutdown(){
-  v20HidePower();v20ClearDesktop();
-  const o=v20BootOverlay('Shutting down');
-  setTimeout(()=>{
-    o.style.opacity='0';
-    setTimeout(()=>{o.remove();q('lock')?.classList.remove('hidden');q('login')?.classList.add('hidden');},450);
-  },900);
-}
-function v20Restart(){
-  v20HidePower();v20ClearDesktop();q('lock')?.classList.add('hidden');q('login')?.classList.add('hidden');
-  const o=v20BootOverlay('Restarting');
-  setTimeout(()=>{
-    o.style.opacity='0';
-    setTimeout(()=>{o.remove();q('login')?.classList.remove('hidden');const p=q('pin');if(p)p.value='';},450);
-  },1800);
-}
-function v20Lock(){v20HidePower();v20ClearDesktop();q('lock')?.classList.remove('hidden');q('login')?.classList.add('hidden')}
-function v20Sleep(){
-  v20HidePower();
-  const s=document.createElement('div');s.id='w10-v20-sleep';s.style.cssText='position:fixed;inset:0;background:#000;z-index:2147483647;display:flex;align-items:center;justify-content:center;color:#aaa;font:14px "Segoe UI",Arial';s.textContent='Sleeping · click to wake';document.body.appendChild(s);s.onclick=()=>s.remove();
-}
-function showPowerMenu(){
-  v20HidePower();
-  const p=document.createElement('div');p.id='w10-v20-power';
-  p.innerHTML='<div class="pTitle">Power</div><button data-p="sleep">◐ Sleep</button><button data-p="restart">↻ Restart</button><button class="danger" data-p="shutdown">⏻ Shut down</button><button data-p="lock">🔒 Lock</button><button data-p="cancel">Cancel</button>';
-  document.body.appendChild(p);
-  p.addEventListener('click',e=>{
-    const b=e.target.closest('button');if(!b)return;
-    e.preventDefault();e.stopImmediatePropagation();
-    const a=b.dataset.p;
-    if(a==='sleep')v20Sleep();else if(a==='restart')v20Restart();else if(a==='shutdown')v20Shutdown();else if(a==='lock')v20Lock();else v20HidePower();
-  },true);
-}
-window.showPowerMenu=showPowerMenu;
-window.w10V20Power={showPowerMenu,v20Shutdown,v20Restart,v20Lock};
-function repairPowerButton(){
-  const sm=q('startMenu');if(!sm)return;
-  let b=sm.querySelector('.startFooter button[data-v20power]');
-  if(!b){
-    const candidates=[...sm.querySelectorAll('.startFooter button')].filter(x=>/power/i.test(x.textContent||''));
-    b=candidates[0];
-    if(!b){
-      const f=sm.querySelector('.startFooter');
-      if(!f)return;
-      b=document.createElement('button');f.appendChild(b);
-    }
-    const n=b.cloneNode(true);b.replaceWith(n);b=n;b.dataset.v20power='1';
-    b.textContent='⏻ Power';b.removeAttribute('onclick');
-    b.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();showPowerMenu()},true);
-  }
-}
-function init(){repairPowerButton();setTimeout(repairPowerButton,250);setTimeout(repairPowerButton,1000)}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-})();
-</script>
+
 <!-- RESTORE BOOT LOOK: earlier compact Windows 10-style boot screen -->
 <style id="restore-boot-earlier">
   #boot,
@@ -34306,7 +33376,7 @@ const showLock=()=>{setState('locked');screen.classList.add('root-off');hide(boo
 const showDesktop=()=>{setState('desktop');screen.classList.add('root-off');hide(boot);hide(lock);hide(login);show(desktop,'block');const p=login.querySelector('#pin');if(p)p.value=''};
 lock.onclick=e=>{e.preventDefault();e.stopImmediatePropagation();showLogin()};
 const pin=login.querySelector('#pin'),btn=login.querySelector('#loginBtn'),hint=login.querySelector('#pinHint');
-if(btn){const b=btn.cloneNode(true);btn.replaceWith(b);b.onclick=e=>{e.preventDefault();e.stopImmediatePropagation();const value=String(pin?.value||'');if(value==='Lucia1213'){if(hint){hint.textContent='Signing in…';hint.style.color='#aaa'}showDesktop()}else{if(hint){hint.textContent=value?'Incorrect PIN':'Enter your PIN to continue';hint.style.color=value?'#ffb4b4':'#aaa'}if(value)pin?.animate?.([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:180})}}}
+if(btn){const b=btn.cloneNode(true);btn.replaceWith(b);b.onclick=e=>{e.preventDefault();e.stopImmediatePropagation();const value=String(pin?.value||'');if(value===(window.__w10GetPin?window.__w10GetPin():(localStorage.getItem('win10sim_pin_additive_v1')||'Lucia1213'))){if(hint){hint.textContent='Signing in…';hint.style.color='#aaa'}showDesktop()}else{if(hint){hint.textContent=value?'Incorrect PIN':'Enter your PIN to continue';hint.style.color=value?'#ffb4b4':'#aaa'}if(value)pin?.animate?.([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:180})}}}
 if(pin){pin.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();login.querySelector('#loginBtn')?.click()}}}
 // One boot timer. Nothing else in the file controls this isolated screen.
 setTimeout(()=>{if(state==='boot')showLock()},2300);
@@ -34348,7 +33418,7 @@ function finalBind(){
  const freshLogin=login.cloneNode(true);login.replaceWith(freshLogin);
  const p=freshLogin.querySelector('#pin'),b=freshLogin.querySelector('#loginBtn'),h=freshLogin.querySelector('#pinHint');
  lock.onclick=e=>{e.preventDefault();e.stopImmediatePropagation();showLogin()};
- b.onclick=e=>{e.preventDefault();e.stopImmediatePropagation();const value=String(p.value||'');if(value==='Lucia1213'){if(h){h.textContent='Signing in…';h.style.color='#aaa'}setTimeout(startDesktop,80)}else{if(h){h.textContent=value?'Incorrect PIN':'Enter your PIN to continue';h.style.color=value?'#ffb4b4':'#aaa'}if(value)p.animate?.([{transform:'translateX(0)'},{transform:'translateX(-7px)'},{transform:'translateX(7px)'},{transform:'translateX(0)'}],{duration:180})}};
+ b.onclick=e=>{e.preventDefault();e.stopImmediatePropagation();const value=String(p.value||'');if(value===(window.__w10GetPin?window.__w10GetPin():(localStorage.getItem('win10sim_pin_additive_v1')||'Lucia1213'))){if(h){h.textContent='Signing in…';h.style.color='#aaa'}setTimeout(startDesktop,80)}else{if(h){h.textContent=value?'Incorrect PIN':'Enter your PIN to continue';h.style.color=value?'#ffb4b4':'#aaa'}if(value)p.animate?.([{transform:'translateX(0)'},{transform:'translateX(-7px)'},{transform:'translateX(7px)'},{transform:'translateX(0)'}],{duration:180})}};
  p.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();b.click()}};
 }
 function bootSequence(){
@@ -35738,7 +34808,7 @@ function bind(){
    e.preventDefault();e.stopImmediatePropagation();
    const value=String(pin.value||'');
    const hint=$('pinHint');
-   if(value==='Lucia1213'){
+   if(value===(window.__w10GetPin?window.__w10GetPin():(localStorage.getItem('win10sim_pin_additive_v1')||'Lucia1213'))){
      if(hint){hint.textContent='Signing in…';hint.style.color='#aaa'}
      enterDesktop();
      const desktop=$('desktop');
@@ -36238,6 +35308,257 @@ document.addEventListener('click',e=>{
   };
 })();
 </script>
+\n<style id="w10-ultimate-settings-css">
+.w10u-root{height:100%;display:flex;background:#f7f7f7;color:#202020;font-family:"Segoe UI",Arial,sans-serif}
+.w10u-nav{width:285px;flex:0 0 285px;background:#f3f3f3;border-right:1px solid #d7d7d7;display:flex;flex-direction:column;overflow:hidden}
+.w10u-brand{height:64px;display:flex;align-items:center;gap:10px;padding:0 15px;background:#fff;border-bottom:1px solid #ddd;font-size:22px;font-weight:400}.w10u-brand button{width:34px;height:34px;background:transparent;font-size:30px;color:#444;cursor:pointer}.w10u-brand button:hover{background:#e7e7e7}
+.w10u-profile{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;border-bottom:1px solid #ddd}.w10u-avatar,.w10u-account>div{background:#0078d4;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center}.w10u-avatar{width:43px;height:43px;font-size:20px}.w10u-profile span{display:flex;flex-direction:column}.w10u-profile strong{font-size:14px}.w10u-profile small{font-size:12px;color:#666;margin-top:2px}
+.w10u-search{height:38px;margin:12px;border:1px solid #999;background:#fff;display:flex;align-items:center;padding:0 9px}.w10u-search span{font-size:20px;color:#666;margin-right:7px}.w10u-search input{border:0;outline:0;width:100%;height:100%;font-size:14px}
+.w10u-nav nav{overflow:auto;padding:2px 8px 18px}.w10u-nav nav button{width:100%;height:40px;border:0;background:transparent;text-align:left;display:flex;align-items:center;gap:12px;padding:0 12px;color:#333;font-size:13px;border-left:3px solid transparent;cursor:pointer}.w10u-nav nav button:hover{background:#e5e5e5}.w10u-nav nav button.active{background:#e0e0e0;border-left-color:#0078d4;font-weight:600}.w10u-nav nav button span{width:20px;text-align:center;font-size:17px;color:#0078d4}
+.w10-settings-main{background:#fff;overflow:auto;flex:1;padding:25px 32px}.w10u-bread{font-size:12px;color:#777;margin-bottom:12px}.w10u-bread span{padding:0 6px}.w10u-hero{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#f7fbff,#eef6fc);border:1px solid #d9e6f0;padding:24px;margin-bottom:20px}.w10u-kicker{font-size:12px;letter-spacing:1.2px;color:#0078d4;font-weight:700}.w10u-hero h1{font-size:34px;font-weight:300;margin:3px 0}.w10u-hero p{margin:0;color:#666}.w10u-hero-icon{font-size:60px;color:#0078d4}.w10u-home-title{font-size:20px;font-weight:400;margin:18px 0 10px}.w10u-home-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.w10u-home-card{min-height:88px;border:1px solid #ddd;background:#fff;display:flex;align-items:center;text-align:left;padding:13px;gap:13px;cursor:pointer}.w10u-home-card:hover{background:#f5f9fd;border-color:#9dc6e8}.w10u-home-card>b{width:35px;font-size:23px;color:#0078d4;text-align:center}.w10u-home-card span{display:flex;flex-direction:column}.w10u-home-card strong{font-size:15px;font-weight:500}.w10u-home-card small{font-size:12px;color:#666;margin-top:3px}.w10u-home-card i{margin-left:auto;font-size:22px;color:#777}
+.w10u-settings-main h1{font-size:30px;font-weight:300;margin:0 0 5px}.w10u-sub{color:#666;margin:0 0 20px}.w10u-row{min-height:68px;border:1px solid #ddd;border-bottom:0;background:#fff;display:flex;align-items:center;gap:20px;padding:12px 15px}.w10u-row:last-of-type{border-bottom:1px solid #ddd}.w10u-copy{display:flex;flex-direction:column;flex:1;min-width:0}.w10u-copy strong{font-size:14px;font-weight:500}.w10u-copy small{font-size:12px;color:#666;margin-top:3px;line-height:1.35}.w10u-select,.w10u-input{height:36px;min-width:170px;border:1px solid #999;background:#fff;padding:0 9px;color:#222}.w10u-color{width:58px;height:38px;border:1px solid #999;padding:2px;background:#fff}.w10u-toggle{display:flex;align-items:center;gap:9px;white-space:nowrap;font-size:13px}.w10u-toggle input{appearance:none;width:42px;height:22px;border-radius:12px;background:#aaa;position:relative;cursor:pointer;vertical-align:middle}.w10u-toggle input:after{content:"";position:absolute;width:18px;height:18px;left:2px;top:2px;border-radius:50%;background:#fff;transition:.16s}.w10u-toggle input:checked{background:#0078d4}.w10u-toggle input:checked:after{left:22px}.w10u-range{display:flex;align-items:center;gap:10px;min-width:230px}.w10u-range input{width:190px}.w10u-range output{width:45px;text-align:right;font-size:12px}.w10u-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.w10u-btn{border:1px solid #0078d4;background:#0078d4;color:#fff;padding:9px 14px;cursor:pointer}.w10u-btn:hover{filter:brightness(.93)}.w10u-btn.secondary{background:#eee;color:#222;border-color:#bbb}.w10u-btn.danger{background:#c42b1c;border-color:#c42b1c}.w10u-inline{display:flex;gap:7px}.w10u-status{border:1px solid #d7e4ee;background:#f5faff;padding:14px;display:flex;gap:10px;align-items:center;margin-bottom:12px}.w10u-status b{color:#107c10}.w10u-note{margin-top:16px;padding:12px;background:#f5f5f5;border-left:3px solid #0078d4;color:#666;font-size:12px;line-height:1.5}.w10u-account{display:flex;align-items:center;gap:14px;border:1px solid #ddd;padding:16px;margin-bottom:12px}.w10u-account>div{width:62px;height:62px;font-size:28px}.w10u-account span{display:flex;flex-direction:column}.w10u-account strong{font-size:20px;font-weight:400}.w10u-account small{color:#666}.w10u-pin{border:1px solid #ddd;padding:17px;margin-top:12px}.w10u-pin h3{margin:0 0 4px;font-size:17px;font-weight:500}.w10u-pin p{color:#666;font-size:12px}.w10u-pin input{display:block;width:300px;max-width:100%;height:36px;margin:7px 0;border:1px solid #999;padding:0 9px}.w10u-status-text{font-size:12px;color:#a05a00;margin-top:9px}.w10u-app-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:16px}.w10u-app{border:1px solid #ddd;background:#fff;padding:12px;text-align:left;cursor:pointer}.w10u-app:hover{background:#f4f8fc}.w10u-app strong,.w10u-app small{display:block}.w10u-app small{color:#666;margin-top:4px}.w10u-update{display:flex;flex-direction:column;border:1px solid #d5e2ec;background:#f5faff;padding:18px;margin-bottom:12px}.w10u-update b{font-size:19px;font-weight:400}.w10u-update span{font-size:12px;color:#666;margin-top:3px}.w10u-update strong{margin-top:14px;color:#107c10;font-size:13px}
+.w10-ult-dark .w10u-root{background:#202020;color:#eee}.w10-ult-dark .w10u-nav{background:#252525;border-color:#444}.w10-ult-dark .w10u-brand,.w10-ult-dark .w10u-profile,.w10-ult-dark .w10u-home-card,.w10-ult-dark .w10u-row,.w10-ult-dark .w10u-pin,.w10-ult-dark .w10u-account,.w10-ult-dark .w10u-app{background:#292929;color:#eee;border-color:#444}.w10-ult-dark .w10u-search,.w10-ult-dark .w10u-select,.w10-ult-dark .w10u-input,.w10-ult-dark .w10u-pin input{background:#202020;color:#eee;border-color:#666}.w10-ult-dark .w10-settings-main{background:#202020}.w10-ult-dark .w10u-copy small,.w10-ult-dark .w10u-profile small,.w10-ult-dark .w10u-note,.w10-ult-dark .w10u-sub{color:#aaa}.w10-ult-dark .w10u-home-card:hover,.w10-ult-dark .w10u-nav nav button:hover{background:#333}.w10-ult-dark .w10u-hero,.w10-ult-dark .w10u-status,.w10-ult-dark .w10u-update{background:#253342;border-color:#43515c}.w10-ult-contrast .w10u-root,.w10-ult-contrast .w10-settings-main{filter:contrast(1.2)}.w10-ult-bigtext .w10u-root{font-size:calc(14px * var(--w10-ult-scale,1))}.w10-ult-noanim *, .w10-ult-noanim *:before, .w10-ult-noanim *:after{animation-duration:.001ms!important;transition-duration:.001ms!important}.w10-ult-trans-off #startMenu,.w10-ult-trans-off #taskbar,.w10-ult-trans-off .window{backdrop-filter:none!important}.w10-ult-compact .window{transform-origin:top left}.w10u-nav nav::-webkit-scrollbar,.w10-settings-main::-webkit-scrollbar{width:10px}.w10u-nav nav::-webkit-scrollbar-thumb,.w10-settings-main::-webkit-scrollbar-thumb{background:#c7c7c7}
+@media(max-width:900px){.w10u-nav{width:225px;flex-basis:225px}.w10u-home-grid{grid-template-columns:1fr}.w10u-app-grid{grid-template-columns:repeat(2,1fr)}.w10-settings-main{padding:18px}}
+</style>
+<script id="w10-ultimate-settings-runtime">
+(()=>{
+'use strict';
+const get=(k,d)=>{try{const v=localStorage.getItem('w10ult_'+k);return v===null?d:v}catch(e){return d}};
+function applyClock(){
+ const format=get('clock','12');
+ const nodes=document.querySelectorAll('#taskbar .clock,#taskbar [data-clock],#clock');
+ nodes.forEach(n=>{try{const now=new Date();n.textContent=now.toLocaleTimeString([],format==='24'?{hour:'2-digit',minute:'2-digit',hour12:false}:{hour:'numeric',minute:'2-digit',hour12:true})}catch(e){}});
+}
+window.applyClock=applyClock;
+const oldRender=window.__canonicalAppRenderers;
+if(oldRender&&window.__w10UltimateSettings)oldRender.settings=window.__w10UltimateSettings;
+try{if(typeof settingsApp!=='undefined'&&window.__w10UltimateSettings)settingsApp=window.__w10UltimateSettings}catch(e){}
+try{window.settingsApp=window.__w10UltimateSettings}catch(e){}
+function patchPin(){
+ const PIN='win10sim_pin_additive_v1';
+ const old=window.__w10GetPin;
+ window.__w10GetPin=()=>{try{return localStorage.getItem(PIN)||'Lucia1213'}catch(e){return 'Lucia1213'}};
+ document.addEventListener('click',e=>{const b=e.target.closest?.('#loginBtn');if(!b)return;const p=document.querySelector('#pin');if(!p)return;const expected=window.__w10GetPin();if(p.value!==expected){e.stopImmediatePropagation();const h=document.querySelector('#pinHint');if(h){h.textContent='Incorrect PIN';h.style.color='#ffb4b4'}p.animate?.([{transform:'translateX(0)'},{transform:'translateX(-7px)'},{transform:'translateX(7px)'},{transform:'translateX(0)'}],{duration:220})}},true);
+}
+function patchOpen(){
+ if(window.__w10UltimateOpenPatch)return;window.__w10UltimateOpenPatch=1;
+ const old=window.openApp;if(typeof old!=='function')return;
+ window.openApp=function(id){const w=old.apply(this,arguments);if(id==='settings')setTimeout(()=>{const c=w?.querySelector?.('.content');if(c&&!c.querySelector('.w10u-root'))window.__w10UltimateSettings(c)},20);if(w&&get('autoMax','0')==='1'&&id!=='settings'){try{window.maxW?.(w)}catch(e){try{w.querySelector('.controls button:nth-child(2)')?.click()}catch(_){} }}return w};
+ document.addEventListener('pointerdown',e=>{if(get('focus','1')!=='1')return;const w=e.target.closest?.('.window');if(w){try{window.focus?.(w)}catch(_){}w.style.zIndex=String((Number(w.style.zIndex)||100)+1)}});
+}
+function applyExisting(){
+ const body=document.body,root=document.documentElement;
+ body.classList.toggle('w10-ult-dark',get('theme','light')==='dark');body.classList.toggle('w10-ult-contrast',get('contrast','0')==='1');body.classList.toggle('w10-ult-noanim',get('motion','full')!=='full');body.classList.toggle('w10-ult-bigtext',get('text','100')!=='100');body.classList.toggle('w10-ult-trans-off',get('transparency','1')==='0');root.style.setProperty('--win-accent',get('accent','#0078d7'));root.style.setProperty('--v-accent',get('accent','#0078d7'));root.style.fontSize=(Number(get('scale','100'))/100*100)+'%';
+ const tb=document.querySelector('#taskbar');if(tb){const a=get('taskbarAlign','left');tb.style.justifyContent=a==='center'?'center':a==='right'?'flex-end':''}
+}
+applyExisting();patchPin();patchOpen();setInterval(applyClock,15000);applyClock();
+new MutationObserver(()=>{applyExisting();const c=document.querySelector('.w10-settings-window .content');if(c&&!c.querySelector('.w10u-root')&&window.__w10UltimateSettings&&c.closest('.w10-settings-window'))window.__w10UltimateSettings(c)}).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
+
+<style id="512-clean-power-boot-css">
+#boot[data-512-authority="0"] .initial-final-boot-spinner{position:relative!important;width:54px!important;height:54px!important;margin-top:28px!important}
+#boot[data-512-authority="0"] .initial-final-boot-spinner i{position:absolute!important;left:50%!important;top:50%!important;width:6px!important;height:6px!important;margin:-3px!important;border-radius:50%!important;background:var(--win-accent,#0078d7)!important;opacity:1!important;transform-origin:3px 24px!important;animation:512BootDot 1.15s linear infinite!important}
+#boot[data-512-authority="0"] .initial-final-boot-spinner i:nth-child(1){transform:rotate(0deg) translateY(-24px);animation-delay:0s}
+#boot[data-512-authority="0"] .initial-final-boot-spinner i:nth-child(2){transform:rotate(72deg) translateY(-24px);animation-delay:-.23s}
+#boot[data-512-authority="0"] .initial-final-boot-spinner i:nth-child(3){transform:rotate(144deg) translateY(-24px);animation-delay:-.46s}
+#boot[data-512-authority="0"] .initial-final-boot-spinner i:nth-child(4){transform:rotate(216deg) translateY(-24px);animation-delay:-.69s}
+#boot[data-512-authority="0"] .initial-final-boot-spinner i:nth-child(5){transform:rotate(288deg) translateY(-24px);animation-delay:-.92s}
+@keyframes 512BootDot{0%,100%{opacity:.18}35%{opacity:1}70%{opacity:.35}}
+#512PowerMenu button:hover{background:#ffffff18!important}
+</style>
+
+
+<style id="512-final-boot-authority-css">
+/* FINAL BOOT AUTHORITY — authentic Windows 10-inspired boot composition */
+#boot[data-512-authority="1"]{position:fixed!important;inset:0!important;background:#000!important;color:#fff!important;z-index:2147483646!important;display:flex!important;align-items:center!important;justify-content:center!important;flex-direction:column!important;overflow:hidden!important}
+#boot[data-512-authority="1"] .initial-final-boot-logo{display:block!important;width:118px!important;height:118px!important;margin:0 0 38px!important;opacity:1!important;filter:none!important}
+#boot[data-512-authority="1"] .initial-final-boot-spinner{display:block!important;position:relative!important;width:64px!important;height:64px!important;margin:0!important;flex:0 0 64px!important}
+#boot[data-512-authority="1"] .initial-final-boot-spinner i{position:absolute!important;left:50%!important;top:50%!important;width:5px!important;height:5px!important;margin:-2.5px!important;border-radius:50%!important;background:var(--win-accent,var(--v-accent,#0078d7))!important;opacity:.16!important;transform-origin:2.5px 28px!important;animation:512FinalBootDot 1.05s linear infinite!important;box-shadow:none!important}
+#boot[data-512-authority="1"] .initial-final-boot-spinner i:nth-child(1){transform:rotate(0deg) translateY(-28px);animation-delay:0s}
+#boot[data-512-authority="1"] .initial-final-boot-spinner i:nth-child(2){transform:rotate(45deg) translateY(-28px);animation-delay:-.13125s}
+#boot[data-512-authority="1"] .initial-final-boot-spinner i:nth-child(3){transform:rotate(90deg) translateY(-28px);animation-delay:-.2625s}
+#boot[data-512-authority="1"] .initial-final-boot-spinner i:nth-child(4){transform:rotate(135deg) translateY(-28px);animation-delay:-.39375s}
+#boot[data-512-authority="1"] .initial-final-boot-spinner i:nth-child(5){transform:rotate(180deg) translateY(-28px);animation-delay:-.525s}
+#boot[data-512-authority="1"] .initial-final-boot-spinner i:nth-child(6){transform:rotate(225deg) translateY(-28px);animation-delay:-.65625s}
+#boot[data-512-authority="1"] .initial-final-boot-spinner i:nth-child(7){transform:rotate(270deg) translateY(-28px);animation-delay:-.7875s}
+#boot[data-512-authority="1"] .initial-final-boot-spinner i:nth-child(8){transform:rotate(315deg) translateY(-28px);animation-delay:-.91875s}
+@keyframes 512FinalBootDot{0%{opacity:.16;transform:rotate(var(--r,0deg)) translateY(-28px)}34%{opacity:1}70%,100%{opacity:.16}}
+#boot[data-512-power-transition="1"] .initial-final-boot-logo{display:none!important}
+#boot[data-512-power-transition="1"] .initial-final-boot-spinner{width:64px!important;height:64px!important}
+</style>
+<script id="512-final-boot-authority">
+(()=>{
+'use strict';
+const boot=document.getElementById('boot');
+const lock=document.getElementById('lock');
+const login=document.getElementById('login');
+const desktop=document.getElementById('desktop');
+const start=document.getElementById('startMenu');
+if(!boot)return;
+
+/* Stop timers from older boot implementations when their handles are exposed. */
+try{if(window.__512LegacyBootTimer){clearTimeout(window.__512LegacyBootTimer);window.__512LegacyBootTimer=null}}catch(e){}
+for(const k of ['__w10BootTimer','__w10FinalBootTimer','__w10V24BootTimer','__w10BootSequenceTimer','__bootTimer','__finalBootTimer']){
+  try{if(window[k]){clearTimeout(window[k]);clearInterval(window[k]);window[k]=null}}catch(e){}
+}
+
+boot.dataset['512Authority']='1';
+let bootRunning=false;
+let powerRunning=false;
+let powerDoneTimer=0;
+let offNode=null;
+let sleepNode=null;
+
+function accent(){
+  return getComputedStyle(document.documentElement).getPropertyValue('--win-accent').trim()
+    ||getComputedStyle(document.documentElement).getPropertyValue('--v-accent').trim()
+    ||'#0078d7';
+}
+function shellHide(){
+  for(const el of [start,desktop,lock,login]) if(el){el.classList.add('hidden');el.style.setProperty('display','none','important');el.style.visibility='hidden';}
+}
+function showLock(){
+  shellHide();
+  if(lock){lock.classList.remove('hidden');lock.style.setProperty('display','flex','important');lock.style.visibility='visible';lock.style.opacity='1';lock.style.pointerEvents='auto';}
+}
+function showLogin(){
+  shellHide();
+  if(login){login.classList.remove('hidden');login.style.setProperty('display','flex','important');login.style.visibility='visible';login.style.opacity='1';login.style.pointerEvents='auto';}
+}
+function prepBoot(power=false){
+  bootRunning=!power;
+  powerRunning=power;
+  boot.dataset['512PowerTransition']=power?'1':'0';
+  boot.classList.remove('hidden');
+  boot.style.setProperty('display','flex','important');
+  boot.style.setProperty('visibility','visible','important');
+  boot.style.setProperty('opacity','1','important');
+  boot.style.setProperty('pointer-events','auto','important');
+  boot.style.setProperty('background','#000','important');
+  boot.style.setProperty('color','#fff','important');
+
+  const logo=boot.querySelector('.initial-final-boot-logo');
+  const sp=boot.querySelector('.initial-final-boot-spinner');
+
+  /* Reuse the original boot elements, but normalize the spinner to the
+     Windows-10-style eight-dot ring every time the boot sequence starts. */
+  if(sp){
+    if(sp.querySelectorAll('i').length!==8){
+      sp.innerHTML='';
+      for(let n=0;n<8;n++){
+        const dot=document.createElement('i');
+        dot.dataset['512BootDot']=String(n+1);
+        dot.style.setProperty('--r',(n*45)+'deg');
+        sp.appendChild(dot);
+      }
+    }
+    sp.style.setProperty('display','block','important');
+    sp.querySelectorAll('i').forEach(i=>{i.style.setProperty('background',accent(),'important');});
+  }
+  if(logo){logo.style.setProperty('display',power?'none':'block','important');}
+}
+function endBoot(){
+  if(!bootRunning)return;
+  bootRunning=false;
+  boot.dataset['512PowerTransition']='0';
+  boot.classList.add('hidden');
+  boot.style.setProperty('display','none','important');
+  boot.style.setProperty('visibility','hidden','important');
+  boot.style.setProperty('opacity','0','important');
+  boot.style.setProperty('pointer-events','none','important');
+  showLock();
+}
+function normalBoot(){
+  if(powerRunning)return;
+  shellHide();
+  prepBoot(false);
+  clearTimeout(powerDoneTimer);
+  powerDoneTimer=setTimeout(endBoot,2300);
+}
+function offScreen(){
+  if(offNode)offNode.remove();
+  offNode=document.createElement('div');
+  offNode.id='512-final-off';
+  offNode.style.cssText='position:fixed;inset:0;background:#000;z-index:2147483647;display:flex;align-items:center;justify-content:center';
+  const b=document.createElement('button');
+  b.setAttribute('aria-label','Power on');
+  b.textContent='⏻';
+  b.style.cssText='width:76px;height:76px;border-radius:50%;border:1px solid #555;background:#111;color:#fff;font:300 42px "Segoe UI",Arial,sans-serif;cursor:pointer';
+  b.onclick=()=>{offNode.remove();offNode=null;normalBoot()};
+  offNode.appendChild(b);document.body.appendChild(offNode);
+}
+function powerTransition(kind){
+  if(powerRunning)return;
+  shellHide();
+  prepBoot(true);
+  clearTimeout(powerDoneTimer);
+  powerRunning=true;
+  powerDoneTimer=setTimeout(()=>{
+    powerRunning=false;
+    boot.dataset['512PowerTransition']='0';
+    boot.classList.add('hidden');
+    boot.style.setProperty('display','none','important');
+    boot.style.setProperty('visibility','hidden','important');
+    boot.style.setProperty('pointer-events','none','important');
+    if(kind==='shutdown')offScreen();else showLogin();
+  },kind==='shutdown'?8000:6000);
+}
+function sleep(){
+  if(sleepNode)sleepNode.remove();
+  sleepNode=document.createElement('div');sleepNode.id='512-final-sleep';
+  sleepNode.style.cssText='position:fixed;inset:0;background:#000;z-index:2147483647;cursor:default';
+  const wake=()=>{if(sleepNode){sleepNode.remove();sleepNode=null}window.removeEventListener('keydown',wake,true);window.removeEventListener('pointerdown',wake,true)};
+  sleepNode.addEventListener('pointerdown',wake,{once:true});
+  window.addEventListener('keydown',wake,{once:true,capture:true});
+  window.addEventListener('pointerdown',wake,{once:true,capture:true});
+  document.body.appendChild(sleepNode);
+}
+function lockNow(){shellHide();showLock()}
+
+/* One authoritative power function. */
+window.systemPower=(kind)=>{
+  if(kind==='shutdown'||kind==='shut down')return powerTransition('shutdown');
+  if(kind==='restart')return powerTransition('restart');
+  if(kind==='lock')return lockNow();
+  if(kind==='sleep')return sleep();
+};
+window.win10Power=window.systemPower;
+window.w10RuntimePower=window.systemPower;
+window.w10FunctionalPower=window.systemPower;
+window.__512CleanPower={normalBoot,powerTransition,offScreen,sleep,lock:lockNow,showLogin,showLock};
+
+/* Preserve the existing Start-menu power button's appearance; only replace its action. */
+function bindPowerButton(){
+  const b=document.getElementById('win10Power');
+  if(!b)return;
+  b.dataset['512PowerBound']='1';
+  b.onclick=(e)=>{e.preventDefault();e.stopImmediatePropagation();openPowerMenu(b)};
+}
+const powerMenuObserver=new MutationObserver(()=>bindPowerButton());
+try{powerMenuObserver.observe(document.getElementById('startMenu')||document.body,{subtree:true,childList:true})}catch(e){}
+function openPowerMenu(anchor){
+  document.getElementById('512-final-power-menu')?.remove();
+  const r=anchor.getBoundingClientRect();
+  const m=document.createElement('div');m.id='512-final-power-menu';
+  m.style.cssText='position:fixed;z-index:2147483647;left:'+Math.max(8,r.left)+'px;bottom:'+(Math.max(8,innerHeight-r.top+6))+'px;width:210px;background:#252525;border:1px solid #454545;box-shadow:0 10px 28px #0008;padding:6px 0;border-radius:2px;font-family:"Segoe UI",Arial,sans-serif';
+  [['sleep','Sleep'],['shutdown','Shut down'],['restart','Restart'],['lock','Lock']].forEach(([k,t])=>{
+    const b=document.createElement('button');b.type='button';b.textContent=t;b.style.cssText='display:block;width:100%;padding:10px 16px;background:transparent;color:#fff;text-align:left;border:0;font:400 14px "Segoe UI",Arial,sans-serif;cursor:pointer';
+    b.onmouseenter=()=>b.style.background='#ffffff12';b.onmouseleave=()=>b.style.background='transparent';
+    b.onclick=()=>{m.remove();window.systemPower(k)};m.appendChild(b);
+  });
+  document.body.appendChild(m);
+  const close=e=>{if(!m.contains(e.target)&&e.target!==anchor){m.remove();document.removeEventListener('pointerdown',close,true)}};
+  setTimeout(()=>document.addEventListener('pointerdown',close,true),0);
+}
+
+/* Initial boot: this is the final authority and starts once. */
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',normalBoot,{once:true});
+else setTimeout(normalBoot,0);
+setTimeout(bindPowerButton,250);
+setInterval(bindPowerButton,1000);
+})();
+</script>
 </body></html>
 
 <!-- 512 USERNAME SYSTEM + SETTINGS V2 ADDITIONS -->
@@ -36382,5 +35703,432 @@ document.addEventListener('click',e=>{
   try{
     mo.observe(document.body,{subtree:true,childList:true,characterData:true});
   }catch(e){}
+})();
+</script>
+
+<!-- 512 ADDITIVE FUNCTIONAL UPGRADE: SETTINGS / CHESS / POWER / EDGE / LIVE APPLY / PIN -->
+<style id="w10-functional-upgrade-css">
+.w10-fx-panel{margin-top:16px;background:#fff;border:1px solid #ddd;padding:18px;box-shadow:0 2px 7px #00000012}
+.w10-fx-panel h2{margin:0 0 6px;font-size:21px;font-weight:400}.w10-fx-panel p{color:#666;margin:5px 0 14px}
+.w10-fx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.w10-fx-card{background:#fafafa;border:1px solid #ddd;padding:14px}.w10-fx-card h3{margin:0 0 6px;font-size:15px;font-weight:500}.w10-fx-card small{display:block;color:#666;margin-bottom:10px}
+.w10-fx-card button,.w10-fx-card select,.w10-fx-card input{font:inherit}.w10-fx-card button{background:#0078d7;color:#fff;border:0;padding:8px 13px;cursor:pointer}.w10-fx-card button:hover{background:#106ebe}
+.w10-fx-card input,.w10-fx-card select{width:100%;box-sizing:border-box;padding:8px;border:1px solid #aaa;background:#fff;color:#111}
+.w10-fx-status{margin-top:8px;font-size:12px;color:#555}.w10-fx-ok{color:#107c10!important}.w10-fx-warn{color:#a05a00!important}
+</style>
+<script id="w10-functional-upgrade-js">
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const DAY=86400000;
+const PIN_KEY='win10sim_pin_additive_v1';
+const PIN_AT='win10sim_pin_changed_additive_v1';
+const USER_KEY='win10sim_username_v1';
+const WALL_KEY='win10sim_wallpaper_live_v1';
+const getPin=()=>{try{return localStorage.getItem(PIN_KEY)||localStorage.getItem('win10sim_pin_v2')||localStorage.getItem('win10sim_pin')||'Lucia1213'}catch(e){return 'Lucia1213'}};
+const toast=(m)=>{try{if(window.toast)window.toast(m,'Windows Web');else if(window.toast2)window.toast2(m);else alert(m)}catch(e){}};
+const esc=x=>String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function persistState(){try{if(typeof state!=='undefined'&&typeof save==='function')save()}catch(e){}}
+function liveWallpaper(url){
+  if(!url)return;
+  try{localStorage.setItem(WALL_KEY,url)}catch(e){}
+  const d=$('desktop'); if(d){d.style.setProperty('background-image','url("'+String(url).replace(/"/g,'')+'")','important');d.style.backgroundSize='cover';d.style.backgroundPosition='center'}
+  try{if(typeof state!=='undefined'){state.wall=url;persistState()}}catch(e){}
+  toast('Wallpaper applied without refreshing');
+}
+window.w10LiveWallpaper=liveWallpaper;
+function buildFunctionalSettings(root){
+ if(!root||root.dataset.fxAdded)return; root.dataset.fxAdded='1';
+ const home=root.querySelector('#w10SettingsContent'); if(!home)return;
+ const panel=document.createElement('section'); panel.className='w10-fx-panel'; panel.innerHTML=`
+  <h2>Windows Web controls</h2>
+  <p>These controls change the simulator immediately. Your existing Personalization app and wallpaper gallery remain untouched.</p>
+  <div class="w10-fx-grid">
+   <div class="w10-fx-card"><h3>Display scale</h3><small>Change the simulated UI scale instantly.</small><select id="fxScale"><option value="100">100%</option><option value="110">110%</option><option value="125">125%</option></select><div class="w10-fx-status" id="fxScaleStatus"></div></div>
+   <div class="w10-fx-card"><h3>Theme</h3><small>Switch the simulator between light and dark UI.</small><button id="fxTheme">Toggle theme</button><div class="w10-fx-status" id="fxThemeStatus"></div></div>
+   <div class="w10-fx-card"><h3>Transparency</h3><small>Apply or remove the glass/blur effect immediately.</small><button id="fxTrans">Toggle transparency</button><div class="w10-fx-status" id="fxTransStatus"></div></div>
+   <div class="w10-fx-card"><h3>Account name</h3><small>Change the local account display name.</small><input id="fxUser" maxlength="32" placeholder="Username"><button id="fxUserSave" style="margin-top:8px">Save name</button><div class="w10-fx-status" id="fxUserStatus"></div></div>
+   <div class="w10-fx-card"><h3>Power</h3><small>Use the real simulator power states.</small><button id="fxLock">Lock</button> <button id="fxRestart">Restart</button> <button id="fxShutdown">Shut down</button></div>
+   <div class="w10-fx-card"><h3>Password / PIN</h3><small>You can change it once every 24 hours.</small><input id="fxOldPin" inputmode="numeric" type="password" placeholder="Current PIN"><input id="fxNewPin" maxlength="40" inputmode="numeric" type="password" placeholder="New PIN" style="margin-top:6px"><input id="fxConfirmPin" maxlength="40" inputmode="numeric" type="password" placeholder="Confirm new PIN" style="margin-top:6px"><button id="fxPinSave" style="margin-top:8px">Change PIN</button><div class="w10-fx-status" id="fxPinStatus"></div></div>
+  </div>`;
+ home.appendChild(panel);
+ const scale=$('fxScale');
+ const savedScale=localStorage.getItem('win10sim_scale_v1')||'100'; scale.value=savedScale;
+ scale.onchange=()=>{document.documentElement.style.fontSize=scale.value+'%';try{localStorage.setItem('win10sim_scale_v1',scale.value)}catch(e){};toast('Display scale applied')};
+ $('fxTheme').onclick=()=>{document.documentElement.classList.toggle('w10-fx-dark');const on=document.documentElement.classList.contains('w10-fx-dark');try{localStorage.setItem('win10sim_theme_v1',on?'dark':'light')}catch(e){};document.body.style.background=on?'#202020':'';document.body.style.color=on?'#eee':'';toast(on?'Dark theme applied':'Light theme applied')};
+ $('fxTrans').onclick=()=>{document.documentElement.classList.toggle('w10-fx-no-trans');const on=document.documentElement.classList.contains('w10-fx-no-trans');document.querySelectorAll('.window,#startMenu,#taskbar').forEach(e=>e.style.backdropFilter=on?'none':'');toast(on?'Transparency reduced':'Transparency restored')};
+ const user=$('fxUser');try{user.value=localStorage.getItem(USER_KEY)||'User'}catch(e){user.value='User'};
+ $('fxUserSave').onclick=()=>{const n=user.value.trim()||'User';try{localStorage.setItem(USER_KEY,n);if(typeof state!=='undefined'){state.settings=state.settings||{};state.settings.username=n;persistState()}}catch(e){};document.querySelectorAll('.w10-settings-profile strong,.win10-user b').forEach(e=>e.textContent=n);toast('Account name saved')};
+ $('fxLock').onclick=()=>window.w10FunctionalPower?.('lock'); $('fxRestart').onclick=()=>window.w10FunctionalPower?.('restart'); $('fxShutdown').onclick=()=>window.w10FunctionalPower?.('shutdown');
+ $('fxPinSave').onclick=()=>{
+  const st=$('fxPinStatus'),old=$('fxOldPin').value,newp=$('fxNewPin').value,conf=$('fxConfirmPin').value;
+  let at=0;try{at=Number(localStorage.getItem(PIN_AT)||0)}catch(e){}
+  const remain=DAY-(Date.now()-at);
+  if(remain>0){st.className='w10-fx-status w10-fx-warn';st.textContent='PIN can be changed again in '+Math.ceil(remain/3600000)+' hour(s).';return}
+  if(old!==getPin()){st.className='w10-fx-status w10-fx-warn';st.textContent='Current PIN is incorrect.';return}
+  if(!/^.{4,40}$/.test(newp)){st.className='w10-fx-status w10-fx-warn';st.textContent='Use 4–40 characters.';return}
+  if(newp!==conf){st.className='w10-fx-status w10-fx-warn';st.textContent='The new PINs do not match.';return}
+  try{localStorage.setItem(PIN_KEY,newp);localStorage.setItem(PIN_AT,String(Date.now()))}catch(e){}
+  st.className='w10-fx-status w10-fx-ok';st.textContent='PIN changed. You can change it again after 24 hours.';toast('PIN changed successfully');
+  $('fxOldPin').value='';$('fxNewPin').value='';$('fxConfirmPin').value='';
+ };
+}
+function watchSettings(){
+ const w=document.querySelector('.w10-settings-window');if(w)buildFunctionalSettings(w);
+}
+const oldOpen=window.openApp;
+if(typeof oldOpen==='function'&&!window.__w10FunctionalOpen){
+ window.__w10FunctionalOpen=true;
+ window.openApp=function(id){
+  const out=oldOpen.apply(this,arguments);
+  if(id==='settings')setTimeout(watchSettings,30);
+  if(id==='chess')setTimeout(()=>fixChess(),30);
+  return out;
+ };
+}
+function fixChess(){
+ const c=document.querySelector('.window:last-child .v-app,.window:last-child');
+ if(typeof chessApp!=='function')return;
+ const candidates=[...document.querySelectorAll('.window')];
+ let target=candidates.reverse().find(w=>/Chess/i.test(w.textContent||'')||w.querySelector('canvas'));
+ if(!target)return;
+ const content=target.querySelector('.v-app')||target;
+ if(content.dataset.w10ChessFixed)return;
+ /* If the existing renderer left a broken/empty shell, re-render the existing full chess implementation into it. */
+ try{content.dataset.w10ChessFixed='1';content.innerHTML='';chessApp(content)}catch(e){content.dataset.w10ChessFixed='';}
+}
+window.w10FixChess=fixChess;
+window.w10FunctionalPower=(...args)=>window.systemPower?.(...args);
+/* Edge: install load/error handlers BEFORE assigning src and make stale timers harmless. */
+function repairEdgeFrame(frame,url){
+ if(!frame||!url)return;
+ const token=String(Date.now())+Math.random(); frame.dataset.w10NavToken=token;
+ frame.onload=()=>{if(frame.dataset.w10NavToken!==token)return;const ov=document.querySelector('.w10-edge-embed-overlay');if(ov)ov.style.display='none';frame.style.display='block';};
+ frame.onerror=()=>{if(frame.dataset.w10NavToken!==token)return;const ov=document.querySelector('.w10-edge-embed-overlay');if(ov)ov.style.display='flex'};
+ try{frame.src=url}catch(e){}
+}
+window.w10RepairEdgeFrame=repairEdgeFrame;
+/* Any iframe created by the fake Edge gets safe handlers automatically. */
+const mo=new MutationObserver(list=>{for(const m of list)for(const n of m.addedNodes){if(!(n instanceof HTMLElement))continue;const frames=n.matches?.('iframe')?[n]:[...n.querySelectorAll?.('iframe')||[]];for(const f of frames){if(f.dataset.w10AutoEdge)return; if(f.closest('.w10-edge-webview,#edgeWebView,.webview')){f.dataset.w10AutoEdge='1';const current=f.getAttribute('src');if(current&&/^https?:/i.test(current))repairEdgeFrame(f,current)}}}});
+try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
+/* Live-apply saved wallpaper on startup without touching Personalization. */
+try{const w=localStorage.getItem(WALL_KEY);if(w&&$('desktop'))$('desktop').style.setProperty('background-image','url("'+w.replace(/"/g,'')+'")','important')}catch(e){}
+/* Fix the visible account name without changing the Personalization app. */
+try{const n=localStorage.getItem(USER_KEY);if(n)document.querySelectorAll('.w10-settings-profile strong,.win10-user b').forEach(e=>e.textContent=n)}catch(e){}
+/* Keep the functional Settings additions available even when the Settings window is rendered later. */
+setInterval(watchSettings,1200);
+})();
+</script>
+
+<!-- 512 SETTINGS EXPANSION: additive only; Personalization and its existing wallpaper system are untouched. -->
+<style id="w10-settings-expansion-css">
+.w10-settings-expansion{margin-top:18px;border-top:1px solid #ddd;padding-top:22px}
+.w10-settings-expansion h2{font-size:21px;font-weight:400;margin:0 0 5px}.w10-settings-expansion>p{color:#666;font-size:13px;margin:0 0 15px}
+.w10-se-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.w10-se-card{border:1px solid #ddd;background:#fff;padding:16px;min-height:145px}.w10-se-card h3{font-size:15px;font-weight:500;margin:0 0 5px}.w10-se-card p{font-size:12px;color:#666;margin:0 0 12px;line-height:1.4}.w10-se-row{display:flex;gap:7px;align-items:center;margin:7px 0}.w10-se-row>*{max-width:100%}.w10-se-card input,.w10-se-card select{height:35px;border:1px solid #999;padding:0 8px;background:#fff;color:#111}.w10-se-card input[type=range]{width:100%;height:auto;padding:0}.w10-se-btn{background:#0078d4;color:#fff;border:0;padding:8px 12px;cursor:pointer}.w10-se-btn:hover{background:#0067b8}.w10-se-btn.secondary{background:#eee;color:#222}.w10-se-btn.danger{background:#c42b1c}.w10-se-status{font-size:12px;color:#666;min-height:16px;margin-top:7px}.w10-se-status.ok{color:#107c10}.w10-se-status.warn{color:#a05a00}.w10-se-toggle{display:flex;align-items:center;gap:8px;font-size:13px}.w10-se-list{border:1px solid #ddd;background:#fafafa;max-height:155px;overflow:auto}.w10-se-list div{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #e5e5e5;font-size:12px}.w10-se-list div:last-child{border-bottom:0}
+@media(max-width:900px){.w10-se-grid{grid-template-columns:1fr}}
+</style>
+<script id="w10-settings-expansion-js">
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const S=window.state||{};
+const saveState=()=>{try{if(typeof window.save==='function')window.save();else localStorage.setItem('win10sim',JSON.stringify(window.state||S))}catch(e){}};
+const toast=m=>{try{window.toastW10?.(m);window.toast2?.(m);window.toast?.(m)}catch(e){}};
+const get=(k,d)=>{try{const v=localStorage.getItem('w10se_'+k);return v===null?d:v}catch(e){return d}};
+const put=(k,v)=>{try{localStorage.setItem('w10se_'+k,String(v))}catch(e){}};
+function addPanel(root){
+ if(!root||root.dataset.seExpanded)return;const home=root.querySelector('#w10SettingsContent');if(!home)return;root.dataset.seExpanded='1';
+ const box=document.createElement('section');box.className='w10-settings-expansion';box.innerHTML=`
+ <h2>More Windows Web settings</h2>
+ <p>Additional working controls for the simulator. These are additive and do not replace the existing Personalization system.</p>
+ <div class="w10-se-grid">
+  <div class="w10-se-card"><h3>Display</h3><p>Control the simulated resolution and interface density.</p><div class="w10-se-row"><select id="seResolution"><option>1280 × 720</option><option>1366 × 768</option><option>1600 × 900</option><option>1920 × 1080</option></select><select id="seDensity"><option value="normal">Normal density</option><option value="compact">Compact</option><option value="large">Large</option></select></div><button class="w10-se-btn" id="seDisplayApply">Apply display settings</button><div class="w10-se-status" id="seDisplayStatus"></div></div>
+  <div class="w10-se-card"><h3>Sound</h3><p>Adjust simulated system volume and sound effects.</p><input id="seVolume" type="range" min="0" max="100"><div class="w10-se-row"><span id="seVolumeLabel">50%</span><label class="w10-se-toggle"><input id="seSound" type="checkbox"> Enable sounds</label></div><button class="w10-se-btn" id="seSoundTest">Test sound</button><div class="w10-se-status" id="seSoundStatus"></div></div>
+  <div class="w10-se-card"><h3>Notifications</h3><p>Choose whether the simulator can show notification toasts.</p><label class="w10-se-toggle"><input id="seNotify" type="checkbox"> Allow simulated notifications</label><div class="w10-se-row"><select id="seNotifyPos"><option value="bottom-right">Bottom right</option><option value="top-right">Top right</option><option value="bottom-left">Bottom left</option></select></div><button class="w10-se-btn" id="seNotifyTest">Send test notification</button><div class="w10-se-status" id="seNotifyStatus"></div></div>
+  <div class="w10-se-card"><h3>Storage</h3><p>Inspect and clean simulator data without resetting the whole desktop.</p><div id="seStorageInfo"></div><div class="w10-se-row"><button class="w10-se-btn secondary" id="seStorageRefresh">Refresh</button><button class="w10-se-btn danger" id="seStorageClear">Clear cached data</button></div><div class="w10-se-status" id="seStorageStatus"></div></div>
+  <div class="w10-se-card"><h3>Multitasking</h3><p>Control how windows behave when opened and focused.</p><label class="w10-se-toggle"><input id="seAutoMax" type="checkbox"> Maximize newly opened windows</label><label class="w10-se-toggle" style="margin-top:9px"><input id="seFocus" type="checkbox"> Bring clicked windows to front</label><div class="w10-se-status" id="seMultiStatus"></div></div>
+  <div class="w10-se-card"><h3>Accessibility</h3><p>Useful visual and keyboard options for the simulated desktop.</p><label class="w10-se-toggle"><input id="seHighContrast" type="checkbox"> High contrast</label><label class="w10-se-toggle" style="margin-top:9px"><input id="seBigText" type="checkbox"> Larger text</label><label class="w10-se-toggle" style="margin-top:9px"><input id="seReduceMotion" type="checkbox"> Reduce animations</label><div class="w10-se-status" id="seAccessStatus"></div></div>
+  <div class="w10-se-card"><h3>Privacy permissions</h3><p>Manage simulated permissions used by apps in this browser.</p><div class="w10-se-list"><div>Camera <input id="seCam" type="checkbox"></div><div>Microphone <input id="seMic" type="checkbox"></div><div>Notifications <input id="sePermNotify" type="checkbox"></div><div>Location <input id="seLoc" type="checkbox"></div></div><div class="w10-se-status" id="sePrivacyStatus"></div></div>
+  <div class="w10-se-card"><h3>Time & language</h3><p>Change the simulator clock format and calendar display.</p><div class="w10-se-row"><select id="seClock"><option value="12">12-hour clock</option><option value="24">24-hour clock</option></select><select id="seWeek"><option value="sun">Week starts Sunday</option><option value="mon">Week starts Monday</option></select></div><button class="w10-se-btn" id="seTimeApply">Apply time settings</button><div class="w10-se-status" id="seTimeStatus"></div></div>
+  <div class="w10-se-card"><h3>Gaming</h3><p>Game-related simulator options.</p><label class="w10-se-toggle"><input id="seGameSound" type="checkbox"> Game sounds</label><label class="w10-se-toggle" style="margin-top:9px"><input id="seGameHints" type="checkbox"> Show game hints</label><button class="w10-se-btn secondary" id="seResetScores" style="margin-top:12px">Reset game scores</button><div class="w10-se-status" id="seGameStatus"></div></div>
+  <div class="w10-se-card"><h3>Startup & session</h3><p>Choose what the simulator does when the desktop starts.</p><label class="w10-se-toggle"><input id="seStartApps" type="checkbox"> Reopen last app window</label><label class="w10-se-toggle" style="margin-top:9px"><input id="seStartTips" type="checkbox"> Show startup notification</label><div class="w10-se-row"><button class="w10-se-btn secondary" id="seSessionReset">Reset session preferences</button></div><div class="w10-se-status" id="seSessionStatus"></div></div>
+  <div class="w10-se-card"><h3>System information</h3><p>Live simulator diagnostics.</p><div id="seDiag"></div><button class="w10-se-btn secondary" id="seDiagRefresh">Refresh diagnostics</button></div>
+  <div class="w10-se-card"><h3>Update history</h3><p>View local simulator update events and run a simulated maintenance check.</p><div class="w10-se-list" id="seHistory"></div><button class="w10-se-btn" id="seCheckUpdate" style="margin-top:9px">Check for updates</button><div class="w10-se-status" id="seUpdateStatus"></div></div>
+ </div>`;
+ home.appendChild(box);
+ initControls(box);
+}
+function bool(id,key,def=true){const el=$(id);if(!el)return;el.checked=get(key,def?'1':'0')==='1';el.onchange=()=>{put(key,el.checked?'1':'0');applyPrefs();}};
+function initControls(box){
+ const res=$('seResolution'),den=$('seDensity'),vol=$('seVolume'),sound=$('seSound');
+ res.value=get('resolution','1280 × 720');den.value=get('density','normal');vol.value=get('volume','50');sound.checked=get('sound','1')==='1';
+ vol.oninput=()=>{$('seVolumeLabel').textContent=vol.value+'%';put('volume',vol.value)};vol.onchange=()=>applyPrefs();sound.onchange=()=>{put('sound',sound.checked?'1':'0');applyPrefs()};
+ $('seDisplayApply').onclick=()=>{put('resolution',res.value);put('density',den.value);applyPrefs();$('seDisplayStatus').className='w10-se-status ok';$('seDisplayStatus').textContent='Display settings applied immediately.'};
+ $('seSoundTest').onclick=()=>{playBeep();$('seSoundStatus').className='w10-se-status ok';$('seSoundStatus').textContent='Test sound played.'};
+ bool('seNotify','notify',true);$('seNotifyPos').value=get('notifyPos','bottom-right');$('seNotifyPos').onchange=()=>put('notifyPos',$('seNotifyPos').value);
+ $('seNotifyTest').onclick=()=>{if(get('notify','1')!=='1'){ $('seNotifyStatus').textContent='Notifications are disabled.';return }toast('Windows Web test notification');$('seNotifyStatus').className='w10-se-status ok';$('seNotifyStatus').textContent='Test notification sent.'};
+ bool('seAutoMax','autoMax',false);bool('seFocus','focus',true);bool('seHighContrast','contrast',false);bool('seBigText','bigText',false);bool('seReduceMotion','reduceMotion',false);
+ ['Cam','Mic','PermNotify','Loc'].forEach(x=>{const key={'Cam':'camera','Mic':'microphone','PermNotify':'notifications','Loc':'location'}[x];bool('se'+x,key,true)});
+ $('seClock').value=get('clock','12');$('seWeek').value=get('week','sun');$('seTimeApply').onclick=()=>{put('clock',$('seClock').value);put('week',$('seWeek').value);window.w10SettingsClock24=$('seClock').value==='24';applyPrefs();$('seTimeStatus').className='w10-se-status ok';$('seTimeStatus').textContent='Time settings applied.'};
+ bool('seGameSound','gameSound',true);bool('seGameHints','gameHints',true);
+ $('seResetScores').onclick=()=>{try{state.scores={};saveState()}catch(e){};$('seGameStatus').className='w10-se-status ok';$('seGameStatus').textContent='Game scores reset.'};
+ bool('seStartApps','startApps',false);bool('seStartTips','startTips',true);$('seSessionReset').onclick=()=>{['autoMax','focus','contrast','bigText','reduceMotion','camera','microphone','notifications','location','clock','week','gameSound','gameHints','startApps','startTips'].forEach(k=>{try{localStorage.removeItem('w10se_'+k)}catch(e){}});initControls(box);$('seSessionStatus').className='w10-se-status ok';$('seSessionStatus').textContent='Session preferences reset.'};
+ $('seStorageRefresh').onclick=storageInfo;$('seStorageClear').onclick=()=>{try{['w10_edge_cache','w10_browser_cache','w10_temp_data'].forEach(k=>localStorage.removeItem(k));$('seStorageStatus').className='w10-se-status ok';$('seStorageStatus').textContent='Cached simulator data cleared.';storageInfo()}catch(e){}};storageInfo();
+ $('seDiagRefresh').onclick=diagnostics;diagnostics();history();
+ $('seCheckUpdate').onclick=()=>{put('lastUpdateCheck',Date.now());$('seUpdateStatus').className='w10-se-status ok';$('seUpdateStatus').textContent='No updates found. Windows Web is up to date.';history('Maintenance check completed')};
+ applyPrefs();
+}
+function applyPrefs(){
+ const d=$('desktop');const density=get('density','normal');document.body.classList.toggle('w10-se-contrast',get('contrast','0')==='1');document.body.classList.toggle('w10-se-bigtext',get('bigText','0')==='1');
+ document.body.classList.toggle('w10-se-reduced-motion',get('reduceMotion','0')==='1');document.documentElement.style.setProperty('--w10-se-scale',density==='compact'?'.94':density==='large'?'1.06':'1');
+ if(d)d.style.filter=get('contrast','0')==='1'?'contrast(1.2)':'';
+}
+function playBeep(){try{if(get('sound','1')!=='1')return;const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const a=new C(),o=a.createOscillator(),g=a.createGain();o.frequency.value=660;g.gain.value=.035;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.12)}catch(e){}}
+function storageInfo(){const el=$('seStorageInfo');if(!el)return;let total=0;try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i),v=localStorage.getItem(k)||'';total+=(k.length+v.length)*2}}catch(e){}el.innerHTML='<b>'+Math.ceil(total/1024)+' KB</b> estimated local simulator data<br><small>Saved settings, files, notes and preferences are preserved.</small>'}
+function diagnostics(){const el=$('seDiag');if(!el)return;el.innerHTML='<div style="font-size:12px;line-height:1.7">Build: 19045 Web<br>Viewport: '+innerWidth+' × '+innerHeight+'<br>Online: '+(navigator.onLine?'Yes':'No')+'<br>Local storage: '+(typeof localStorage!=='undefined'?'Available':'Unavailable')+'<br>Apps open: '+Object.keys(window.__masterApps||window.apps||{}).length+'</div>'}
+function history(extra){const el=$('seHistory');if(!el)return;let a=[];try{a=JSON.parse(get('history','[]'))||[]}catch(e){}if(extra){a.unshift(new Date().toLocaleString()+' — '+extra);a=a.slice(0,12);put('history',JSON.stringify(a))}el.innerHTML=a.length?a.map(x=>'<div>'+x+'</div>').join(''):'<div>No update events yet.</div>'}
+function watch(){document.querySelectorAll('.w10-settings-window').forEach(addPanel)}
+const oldOpen=window.openApp;if(typeof oldOpen==='function'&&!window.__w10SettingsExpansionOpen){window.__w10SettingsExpansionOpen=true;window.openApp=function(id){const w=oldOpen.apply(this,arguments);if(id==='settings')setTimeout(watch,40);return w}}
+watch();setInterval(watch,1500);
+window.w10SettingsExpansion={applyPrefs,watch};
+})();
+</script>
+
+<!-- 512 SETTINGS UI REPAIR: compact real options + resilient personalization previews -->
+<style id="w10-settings-ui-repair-css">
+/* Replace the giant expansion grid visually with a Windows-style option launcher. */
+.w10-settings-window .w10-settings-expansion{display:none!important}
+.w10-options-panel{margin-top:18px;border-top:1px solid #ddd;padding-top:20px}
+.w10-options-panel h2{font-size:21px;font-weight:400;margin:0 0 4px}
+.w10-options-panel>p{margin:0 0 14px;color:#666;font-size:13px}
+.w10-options-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:1px solid #ddd;background:#fff}
+.w10-option{min-height:74px;padding:12px 14px;display:flex;align-items:center;gap:13px;background:#fff;border:0;border-bottom:1px solid #e3e3e3;border-right:1px solid #e3e3e3;text-align:left;cursor:pointer;color:#222}
+.w10-option:hover{background:#f4f8fc}
+.w10-option .oi{width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#0078d4;flex:none}
+.w10-option strong{display:block;font-size:14px;font-weight:500}.w10-option small{display:block;color:#666;font-size:12px;margin-top:3px}
+.w10-option .arrow{margin-left:auto;color:#777;font-size:21px}
+.w10-live-status{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid #d8d8d8;background:#fafafa;font-size:12px;color:#555}
+/* Keep the Personalization window usable even when remote thumbnail images are unavailable. */
+.w10-settings-window .w10-settings-main{background:#fff!important}
+#w10SettingsPro{background:#f7f7f7!important}
+#w10SettingsPro .w10smain{background:#fff!important}
+#w10SettingsPro .w10wall,#w10SettingsPro .wallCard{background-color:#183b67!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important}
+#w10SettingsPro .w10wall:after,#w10SettingsPro .wallCard:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 35%,rgba(0,0,0,.58));}
+#w10SettingsPro .w10wall b,#w10SettingsPro .wallCard span{z-index:2}
+@media(max-width:900px){.w10-options-grid{grid-template-columns:1fr}.w10-option{border-right:0}}
+</style>
+<script id="w10-settings-ui-repair-js">
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=x=>String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function addHomeOptions(root){
+ if(!root||root.dataset.w10OptionsRepair)return;
+ const home=root.querySelector('#w10SettingsContent');
+ if(!home)return;
+ root.dataset.w10OptionsRepair='1';
+ const box=document.createElement('section');
+ box.className='w10-options-panel';
+ box.innerHTML=`<h2>Options &amp; controls</h2><p>Quick access to the settings that actually change the simulated PC.</p>
+ <div class="w10-options-grid">
+  <button class="w10-option" data-page="system"><span class="oi">▣</span><span><strong>Display &amp; sound</strong><small>Scale, volume, notifications and effects</small></span><span class="arrow">›</span></button>
+  <button class="w10-option" data-page="network"><span class="oi">◉</span><span><strong>Network</strong><small>Wi-Fi, Ethernet, VPN and proxy options</small></span><span class="arrow">›</span></button>
+  <button class="w10-option" data-page="devices"><span class="oi">⌨</span><span><strong>Devices</strong><small>Keyboard, mouse, Bluetooth and printers</small></span><span class="arrow">›</span></button>
+  <button class="w10-option" data-page="accounts"><span class="oi">♙</span><span><strong>Accounts</strong><small>Profile, username and sign-in options</small></span><span class="arrow">›</span></button>
+  <button class="w10-option" data-page="time"><span class="oi">◷</span><span><strong>Time &amp; language</strong><small>Clock, region and language preferences</small></span><span class="arrow">›</span></button>
+  <button class="w10-option" data-page="accessibility"><span class="oi">◎</span><span><strong>Accessibility</strong><small>Text size, motion and visual options</small></span><span class="arrow">›</span></button>
+  <button class="w10-option" data-page="gaming"><span class="oi">◉</span><span><strong>Gaming</strong><small>Game Mode, captures and Xbox settings</small></span><span class="arrow">›</span></button>
+  <button class="w10-option" data-page="privacy"><span class="oi">♢</span><span><strong>Privacy</strong><small>Permissions and browser-local privacy controls</small></span><span class="arrow">›</span></button>
+  <button class="w10-option" data-page="apps"><span class="oi">▤</span><span><strong>Apps</strong><small>Installed apps, defaults and startup</small></span><span class="arrow">›</span></button>
+  <button class="w10-option" data-page="update"><span class="oi">↻</span><span><strong>Updates &amp; security</strong><small>Maintenance, recovery and simulator status</small></span><span class="arrow">›</span></button>
+ </div>`;
+ home.appendChild(box);
+ box.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{
+   const target=root.querySelector('.w10-settings-menu button[data-page="'+b.dataset.page+'"]');
+   target?.click();
+ });
+}
+function patchNetwork(){
+ const w=document.querySelector('.w10-settings-window');
+ if(!w||w.dataset.w10NetworkRepair)return;
+ w.dataset.w10NetworkRepair='1';
+ const content=w.querySelector('#w10SettingsContent');
+ if(!content)return;
+ const observer=new MutationObserver(()=>{
+   const h=content.querySelector('h1');
+   if(!h||h.textContent.trim()!=='Wi-Fi')return;
+   if(content.querySelector('[data-w10-wifi-extra]'))return;
+   const card=document.createElement('div');card.dataset.w10WifiExtra='1';
+   card.className='w10-list-card';
+   card.innerHTML='<button type="button"><b>●</b><span><strong>Windows Web connection</strong><small>Browser network access</small></span><em style="margin-left:auto;color:#107c10;font-style:normal">Connected</em></button><button type="button"><b>↻</b><span><strong>Refresh network status</strong><small>Re-check the host browser connection</small></span><i>›</i></button>';
+   const refresh=card.querySelectorAll('button')[1];
+   refresh.onclick=()=>{const s=card.querySelector('em');if(s){s.textContent=navigator.onLine?'Connected':'Offline';s.style.color=navigator.onLine?'#107c10':'#a33'};try{window.toastW10?.(navigator.onLine?'Network status refreshed':'Host browser is offline')}catch(e){}};
+   content.appendChild(card);
+ });
+ observer.observe(content,{childList:true,subtree:true});
+}
+function repairWallCards(){
+ const grids=[...document.querySelectorAll('#w10Walls,.wallGrid,#w10ExtraWalls')];
+ grids.forEach(g=>g.querySelectorAll('.w10wall,.wallCard').forEach((b,i)=>{
+   if(b.dataset.w10PreviewRepair)return;
+   b.dataset.w10PreviewRepair='1';
+   const name=(b.textContent||'Wallpaper').trim()||'Wallpaper';
+   const image=(b.style.backgroundImage||'').replace(/^url\(["']?/,'').replace(/["']?\)$/,'');
+   const fallback=[
+    'linear-gradient(135deg,#0b4f88 0%,#1877b9 52%,#071d39 100%)',
+    'linear-gradient(135deg,#071b2d 0%,#0a79b9 48%,#183b67 100%)',
+    'linear-gradient(135deg,#11142e 0%,#315d9a 55%,#0b203a 100%)',
+    'linear-gradient(135deg,#194d35 0%,#4c8f68 48%,#0c2e59 100%)'
+   ][i%4];
+   b.style.backgroundColor='#183b67';
+   const test=document.createElement('img');
+   test.alt='';test.setAttribute('aria-hidden','true');test.style.display='none';
+   let done=false;
+   test.onload=()=>{done=true};
+   test.onerror=()=>{if(!done){b.style.backgroundImage=fallback}};
+   if(image&&/^https?:/i.test(image)){test.src=image;document.body.appendChild(test);setTimeout(()=>test.remove(),8000)}
+   else if(!image||image==='none'){b.style.backgroundImage=fallback}
+   /* Never let a failed remote image leave a blank white tile. */
+   setTimeout(()=>{if(!b.style.backgroundImage||b.style.backgroundImage==='none')b.style.backgroundImage=fallback},1200);
+   b.title=b.title||name;
+ }));
+}
+function watch(){
+ document.querySelectorAll('.w10-settings-window').forEach(addHomeOptions);
+ repairWallCards();
+ patchNetwork();
+}
+watch();
+new MutationObserver(watch).observe(document.body,{childList:true,subtree:true});
+[200,700,1500,3000].forEach(t=>setTimeout(watch,t));
+window.addEventListener('online',watch);window.addEventListener('offline',watch);
+})();
+</script>
+<script id="w10-ultimate-settings-js">
+(()=>{
+'use strict';
+const LS='w10ult_';
+const get=(k,d)=>{try{const v=localStorage.getItem(LS+k);return v===null?d:v}catch(e){return d}};
+const set=(k,v)=>{try{localStorage.setItem(LS+k,String(v))}catch(e){}};
+const del=(k)=>{try{localStorage.removeItem(LS+k)}catch(e){}};
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const toast=m=>{try{window.toastW10?.(m)}catch(e){} try{window.toast2?.(m)}catch(e){}};
+const stateObj=()=>window.state||{};
+const persist=()=>{try{if(typeof window.save==='function')window.save();else if(typeof window.persistState==='function')window.persistState()}catch(e){}};
+function pref(k,d){return get(k,d)}
+function apply(){
+ const root=document.documentElement, body=document.body;
+ const accent=get('accent','#0078d7');root.style.setProperty('--win-accent',accent);root.style.setProperty('--v-accent',accent);
+ body.classList.toggle('w10-ult-dark',get('theme','light')==='dark');
+ body.classList.toggle('w10-ult-contrast',get('contrast','0')==='1');
+ body.classList.toggle('w10-ult-noanim',get('motion','full')==='reduced');
+ body.classList.toggle('w10-ult-bigtext',get('text','100')!=='100');
+ body.classList.toggle('w10-ult-trans-off',get('transparency','1')==='0');
+ body.classList.toggle('w10-ult-compact',get('density','normal')==='compact');
+ const scale=Number(get('scale','100'))||100;root.style.setProperty('--w10-ult-scale',scale/100);
+ const align=get('taskbarAlign','left'); const tb=document.querySelector('#taskbar'); if(tb){tb.dataset.w10Align=align;tb.style.justifyContent=align==='center'?'center':align==='right'?'flex-end':''}
+ const vol=Number(get('volume','70'));window.__w10Volume=Math.max(0,Math.min(100,vol));
+ if(typeof window.setW10Volume==='function')try{window.setW10Volume(vol)}catch(e){}
+ const start=document.querySelector('#startMenu');if(start)start.classList.toggle('w10-ult-start-trans',get('startTransparency','1')==='1');
+ const lock=document.querySelector('#lock');if(lock)lock.dataset.lockShow=get('lockStyle','windows');
+}
+function saveStateKey(k,v){set(k,v);apply();persist()}
+function row(title,desc,control){return `<div class="w10u-row"><div class="w10u-copy"><strong>${title}</strong><small>${desc}</small></div>${control}</div>`}
+function toggle(id,k,label,def='0'){return `<label class="w10u-toggle"><input id="${id}" type="checkbox" ${get(k,def)==='1'?'checked':''}><span></span>${label}</label>`}
+function select(id,k,opts,def){return `<select id="${id}" class="w10u-select">${opts.map(([v,t])=>`<option value="${esc(v)}" ${get(k,def)===v?'selected':''}>${esc(t)}</option>`).join('')}</select>`}
+function button(id,text,kind=''){return `<button id="${id}" class="w10u-btn ${kind}">${text}</button>`}
+function home(){return `<div class="w10u-hero"><div><div class="w10u-kicker">WINDOWS WEB</div><h1>Settings</h1><p>Everything on this simulated PC can be configured here.</p></div><div class="w10u-hero-icon">⚙</div></div><div class="w10u-home-grid">${[
+ ['system','🖥','System','Display, sound, notifications, storage and power'],['devices','⌨','Devices','Bluetooth, mouse, keyboard and printers'],['network','◉','Network & Internet','Wi‑Fi, VPN, proxy and connection options'],['personalization','🎨','Personalization','Colors, themes, Start, taskbar and lock screen'],['apps','▤','Apps','Installed apps, defaults, startup and optional features'],['accounts','👤','Accounts','Username, PIN and sign-in options'],['time','◷','Time & Language','Clock, region, language and typing'],['gaming','🎮','Gaming','Game Mode, Game Bar and capture options'],['accessibility','◎','Ease of Access','Text, contrast, motion, magnifier and narrator'],['search','⌕','Search','Search indexing and history'],['privacy','🔒','Privacy','Permissions, activity and diagnostics'],['update','↻','Update & Security','Updates, recovery, backup and security'],['advanced','⚙','Advanced','Performance, developer and diagnostics']
+ ].map(x=>`<button class="w10u-home-card" data-page="${x[0]}"><b>${x[1]}</b><span><strong>${x[2]}</strong><small>${x[3]}</small></span><i>›</i></button>`).join('')}</div>`}
+const pages={
+ home:{title:'Home',sub:'Manage your Windows Web PC from one place.',body:()=>`<div class="w10u-hero"><div><div class="w10u-kicker">WINDOWS WEB</div><h1>Settings</h1><p>Control display, network, personalization, accounts, apps, privacy, gaming and more.</p></div><div class="w10u-hero-icon">⚙</div></div><h2 class="w10u-home-title">Recommended settings</h2><div class="w10u-home-grid"><button class="w10u-home-card" data-page="system"><b>▣</b><span><strong>System</strong><small>Display, sound, notifications and power</small></span><i>›</i></button><button class="w10u-home-card" data-page="personalization"><b>◈</b><span><strong>Personalization</strong><small>Colors, theme, Start and lock screen</small></span><i>›</i></button><button class="w10u-home-card" data-page="network"><b>◉</b><span><strong>Network &amp; Internet</strong><small>Wi-Fi, airplane mode, VPN and proxy</small></span><i>›</i></button><button class="w10u-home-card" data-page="accounts"><b>♙</b><span><strong>Accounts</strong><small>Username, PIN and sign-in options</small></span><i>›</i></button><button class="w10u-home-card" data-page="devices"><b>⌨</b><span><strong>Devices</strong><small>Bluetooth, mouse, keyboard and AutoPlay</small></span><i>›</i></button><button class="w10u-home-card" data-page="privacy"><b>♢</b><span><strong>Privacy</strong><small>Permissions, activity and diagnostics</small></span><i>›</i></button><button class="w10u-home-card" data-page="gaming"><b>◉</b><span><strong>Gaming</strong><small>Game Mode, sounds, hints and captures</small></span><i>›</i></button><button class="w10u-home-card" data-page="update"><b>↻</b><span><strong>Update &amp; Security</strong><small>Maintenance, security, backup and recovery</small></span><i>›</i></button></div><h2 class="w10u-home-title">Quick links</h2><div class="w10u-actions"><button class="w10u-btn" id="uOpenPersonal">Open Personalization</button><button class="w10u-btn" id="uAbout">About this PC</button></div>`},
+ system:{title:'System',sub:'Control the simulated hardware and desktop experience.',body:()=>`<h1>System</h1><p class="w10u-sub">Changes apply immediately and are saved in this browser.</p>${row('Display scale','Resize the simulated Windows interface.',select('uScale','scale',[['80','80%'],['90','90%'],['100','100%'],['110','110%'],['125','125%'],['150','150%']],'100'))}${row('Interface density','Change spacing and window sizing.',select('uDensity','density',[['normal','Normal'],['compact','Compact'],['comfortable','Comfortable']],'normal'))}${row('Theme','Switch the simulated window chrome.',select('uTheme','theme',[['light','Light'],['dark','Dark'],['system','Use browser preference']],'light'))}${row('Transparency','Acrylic/glass effects.',toggle('uTrans','transparency','Transparency effects','1'))}${row('Animation','Window and menu motion.',select('uMotion','motion',[['full','Full'],['reduced','Reduced'],['none','None']],'full'))}${row('System volume','Volume used by simulated system sounds.',`<div class="w10u-range"><input id="uVol" type="range" min="0" max="100" value="${esc(get('volume','70'))}"><output id="uVolOut">${esc(get('volume','70'))}%</output></div>`)}${row('Notifications','Allow Windows Web toast notifications.',toggle('uNotify','notifications','Allow notifications','1'))}<div class="w10u-actions">${button('uTestSound','Test sound')}${button('uTestToast','Test notification')}${button('uAbout','About this PC')}</div>`},
+ devices:{title:'Devices',sub:'Manage simulated peripherals and input behavior.',body:()=>`<h1>Devices</h1>${row('Bluetooth','Simulated Bluetooth switch.',toggle('uBt','bluetooth','Bluetooth','1'))}${row('Mouse buttons','Choose the primary simulated mouse button.',select('uMouse','mouseButton',[['left','Left'],['right','Right']],'left'))}${row('Pointer size','Adjust the simulated pointer size.',select('uPointer','pointer',[['100','100%'],['125','125%'],['150','150%'],['175','175%']],'100'))}${row('Keyboard repeat','Change simulated typing speed.',select('uRepeat','repeat',[['slow','Slow'],['normal','Normal'],['fast','Fast']],'normal'))}${row('Printers','Manage simulated printer availability.',toggle('uPrinter','printer','Show simulated printer','1'))}${row('AutoPlay','Choose what happens when media is opened.',select('uAutoPlay','autoplay',[['ask','Ask me every time'],['open','Open automatically'],['none','Do nothing']],'ask'))}${row('Pen & Windows Ink','Enable simulated pen/touch features.',toggle('uPen','pen','Enable pen and touch','1'))}`},
+ network:{title:'Network & Internet',sub:'Configure the browser-backed simulated network.',body:()=>`<h1>Network &amp; Internet</h1><div class="w10u-status"><b id="uNetState">${navigator.onLine?'● Connected':'● Offline'}</b><span>Host browser network: ${navigator.onLine?'available':'offline'}</span></div>${row('Wi‑Fi','Enable the simulated Wi‑Fi adapter.',toggle('uWifi','wifi','Wi‑Fi','1'))}${row('Airplane mode','Disable simulated wireless features.',toggle('uAir','airplane','Airplane mode','0'))}${row('Metered connection','Treat this browser connection as metered.',toggle('uMetered','metered','Metered connection','0'))}${row('VPN','Simulated VPN profile.',select('uVpn','vpn',[['off','Not connected'],['web','Windows Web VPN'],['school','School network (simulated)']],'off'))}${row('Proxy','Browser-local proxy preference.',select('uProxy','proxy',[['off','No proxy'],['auto','Auto detect'],['manual','Manual (simulated)']],'off'))}<div class="w10u-actions">${button('uNetRefresh','Refresh network status')}</div><div class="w10u-note">The browser controls the real network connection; these settings control the Windows Web simulation.</div>`},
+ personalization:{title:'Personalization',sub:'Control appearance while keeping the existing Personalization app and wallpaper library intact.',body:()=>`<h1>Personalization</h1><p class="w10u-sub">These controls bridge into the existing visual system; your existing wallpaper library is untouched.</p>${row('Accent color','Used by Settings, taskbar highlights and controls.',`<input id="uAccent" class="w10u-color" type="color" value="${esc(get('accent','#0078d7'))}">`)}${row('Theme','Change simulated light/dark appearance.',select('uPTheme','theme',[['light','Light'],['dark','Dark'],['system','Browser preference']],'light'))}${row('Start menu transparency','Allow translucent Start menu chrome.',toggle('uStartTrans','startTransparency','Transparency','1'))}${row('Taskbar alignment','Move the simulated taskbar controls.',select('uTaskAlign','taskbarAlign',[['left','Left'],['center','Center'],['right','Right']],'left'))}${row('Lock screen style','Choose the lock screen clock treatment.',select('uLockStyle','lockStyle',[['windows','Windows style'],['minimal','Minimal'],['clock','Large clock']],'windows'))}<div class="w10u-actions">${button('uOpenPersonal','Open full Personalization')}</div>`},
+ apps:{title:'Apps',sub:'Manage the existing application system without replacing it.',body:()=>`<h1>Apps</h1><div class="w10u-app-grid">${(window.__canonicalAppRenderers?Object.keys(window.__canonicalAppRenderers):[]).filter(k=>!['settings','about'].includes(k)).slice(0,40).map(k=>`<button class="w10u-app" data-app="${k}"><strong>${esc(k)}</strong><small>${get('disabled_'+k,'0')==='1'?'Disabled':'Enabled'}</small></button>`).join('')}</div>${row('Startup apps','Allow applications to restore their previous session.',toggle('uStartup','startup','Restore previous app window','0'))}${row('Default app behavior','Use the Windows Web shell router for application launches.',toggle('uDefaults','defaults','Windows Web shell defaults','1'))}${row('Optional features','Enable extra simulator components.',toggle('uOptional','optional','Optional Windows Web features','1'))}<div class="w10u-actions">${button('uClearAppPrefs','Reset app preferences','secondary')}</div>`},
+ accounts:{title:'Accounts',sub:'Manage the local simulated account and sign-in.',body:()=>{let n=get('username',localStorage.getItem('win10sim_username')||'User');return `<h1>Accounts</h1><div class="w10u-account"><div>${esc((n||'U').charAt(0).toUpperCase())}</div><span><strong id="uAcctName">${esc(n)}</strong><small>Local Windows Web account</small></span></div>${row('Your info','Change the name shown throughout the simulator.',`<div class="w10u-inline"><input id="uUser" class="w10u-input" value="${esc(n)}" maxlength="32"><button id="uUserSave" class="w10u-btn">Save</button></div>`)}${row('Sign-in options','Require PIN at the simulated login screen.',toggle('uPinEnabled','pinEnabled','PIN sign-in','1'))}<div class="w10u-pin"><h3>Change PIN</h3><p>You can change the PIN once every 24 hours.</p><input id="uOldPin" type="password" inputmode="numeric" placeholder="Current PIN"><input id="uNewPin" type="password" inputmode="numeric" placeholder="New PIN"><input id="uPin2" type="password" inputmode="numeric" placeholder="Confirm new PIN"><button id="uPinSave" class="w10u-btn">Change PIN</button><div id="uPinStatus" class="w10u-status-text"></div></div>${row('Family & other users','Simulated additional accounts.',toggle('uFamily','family','Allow additional simulated profiles','0'))}`}},
+ time:{title:'Time & Language',sub:'Control the simulated clock and regional formatting.',body:()=>`<h1>Time &amp; Language</h1>${row('Clock format','Choose the taskbar clock format.',select('uClock','clock',[['12','12-hour'],['24','24-hour']],'12'))}${row('Week starts','Choose the first day shown in calendar views.',select('uWeek','week',[['sun','Sunday'],['mon','Monday']],'sun'))}${row('Language','Choose the simulated interface language.',select('uLang','language',[['en-US','English (United States)'],['es-MX','Español (México)'],['fr-FR','Français']],'en-US'))}${row('Region','Regional number/date formatting.',select('uRegion','region',[['US','United States'],['MX','Mexico'],['GB','United Kingdom'],['FR','France']],'US'))}${row('Typing','Keyboard suggestions in supported simulator apps.',toggle('uTyping','typing','Typing suggestions','1'))}${row('Speech','Speech features and microphone permission.',toggle('uSpeech','speech','Speech features','1'))}<div class="w10u-note">The actual device clock and keyboard remain controlled by the browser and host operating system.</div>`},
+ gaming:{title:'Gaming',sub:'Tune the built-in games and game overlay.',body:()=>`<h1>Gaming</h1>${row('Game Mode','Prioritize the simulator game experience.',toggle('uGameMode','gameMode','Game Mode','1'))}${row('Game Bar','Show simulated game overlay controls.',toggle('uGameBar','gameBar','Game Bar','1'))}${row('Game sounds','Allow built-in game sound effects.',toggle('uGameSound','gameSound','Game sounds','1'))}${row('Game hints','Show helpful hints in supported games.',toggle('uHints','gameHints','Game hints','1'))}${row('Captures','Allow simulated screenshot/recording actions.',toggle('uCaptures','captures','Game captures','1'))}${row('Controller','Enable simulated controller input.',toggle('uController','controller','Controller support','1'))}<div class="w10u-actions">${button('uResetScores','Reset game scores','secondary')}</div>`},
+ accessibility:{title:'Ease of Access',sub:'Make the simulated desktop easier to read and operate.',body:()=>`<h1>Ease of Access</h1>${row('Text size','Scale readable UI text.',select('uText','text',[['90','90%'],['100','100%'],['110','110%'],['125','125%'],['150','150%']],'100'))}${row('High contrast','Increase contrast throughout Windows Web.',toggle('uContrast','contrast','High contrast','0'))}${row('Reduce motion','Reduce animations and transitions.',toggle('uReduce','motionReduced','Reduce motion','0'))}${row('Transparency','Disable translucent effects for clarity.',toggle('uATrans','transparency','Transparency effects','1'))}${row('Magnifier','Zoom the simulator interface.',select('uMag','magnifier',[['100','100%'],['125','125%'],['150','150%'],['175','175%']],'100'))}${row('Narrator','Simulate spoken accessibility feedback.',toggle('uNarrator','narrator','Narrator','0'))}${row('Color filters','Choose a visual filter.',select('uFilter','colorFilter',[['none','None'],['gray','Grayscale'],['invert','Inverted'],['blue','Blue tint']],'none'))}`},
+ search:{title:'Search',sub:'Control local search behavior.',body:()=>`<h1>Search</h1>${row('Search indexing','Allow Windows Web to index simulated app names.',toggle('uIndex','searchIndex','Index apps','1'))}${row('Search history','Keep recent local searches.',toggle('uSearchHist','searchHistory','Save search history','1'))}${row('Safe search','Filter potentially unwanted simulated results.',toggle('uSafe','safeSearch','Safe search','1'))}${row('Search suggestions','Show suggestions while typing.',toggle('uSuggest','searchSuggest','Search suggestions','1'))}<div class="w10u-actions">${button('uClearSearch','Clear search history','secondary')}</div>`},
+ privacy:{title:'Privacy',sub:'Control what the simulator is allowed to remember or request.',body:()=>`<h1>Privacy</h1>${row('Camera','Permission used by the simulated Camera app.',toggle('uCamera','permCamera','Camera permission','1'))}${row('Microphone','Permission used by supported audio apps.',toggle('uMicrophone','permMicrophone','Microphone permission','1'))}${row('Location','Allow simulated location-dependent features.',toggle('uLocation','permLocation','Location permission','0'))}${row('Notifications','Allow toast notifications.',toggle('uPrivNotify','notifications','Notification permission','1'))}${row('Activity history','Remember recent simulator activity.',toggle('uActivity','activity','Activity history','1'))}${row('Diagnostics','Allow local diagnostics collection.',toggle('uDiag','diagnostics','Diagnostic data','1'))}${row('Personalized suggestions','Use local activity for simulator suggestions.',toggle('uSuggestPriv','suggestions','Personalized suggestions','0'))}<div class="w10u-actions">${button('uClearActivity','Clear activity history','secondary')}${button('uPrivacyReset','Reset privacy permissions','danger')}</div>`},
+ update:{title:'Update & Security',sub:'Keep the simulated Windows environment maintained.',body:()=>`<h1>Update &amp; Security</h1><div class="w10u-update"><b>Windows Web Desktop</b><span>Build 19045 Web</span><strong id="uUpdateState">${get('lastUpdate','No maintenance check recorded')}</strong></div>${row('Automatic updates','Automatically run simulated maintenance checks.',toggle('uAutoUpdate','autoUpdate','Automatic updates','1'))}${row('Windows Security','Show the simulator security dashboard.',toggle('uSecurity','security','Windows Security','1'))}${row('Backup','Keep a local snapshot of simulator preferences.',toggle('uBackup','backup','Automatic local backup','1'))}${row('Recovery','Keep recovery options available.',toggle('uRecovery','recovery','Recovery options','1'))}<div class="w10u-actions">${button('uCheckUpdate','Check for updates')}${button('uRecoveryBtn','Open recovery')}${button('uSecurityBtn','Open Windows Security')}</div>`},
+ advanced:{title:'Advanced',sub:'Developer, performance and diagnostic controls.',body:()=>`<h1>Advanced</h1>${row('Performance mode','Tune simulated visual effects.',select('uPerf','performance',[['balanced','Balanced'],['performance','Performance'],['quality','Quality']],'balanced'))}${row('Developer mode','Enable extra diagnostic controls.',toggle('uDev','developer','Developer mode','0'))}${row('Debug logging','Keep local diagnostic events.',toggle('uDebug','debug','Debug logging','0'))}${row('Window focus','Bring clicked windows to the front.',toggle('uFocus','focus','Focus clicked windows','1'))}${row('Auto maximize','Maximize newly opened simulator windows.',toggle('uMax','autoMax','Maximize new windows','0'))}${row('Diagnostics','Display live browser and simulator information.',toggle('uDiag2','diagnostics','Diagnostics','1'))}<div class="w10u-actions">${button('uDiagBtn','Run diagnostics')}${button('uResetSettings','Reset Settings only','danger')}</div>`}
+};
+function render(root,page){const p=pages[page];if(!p)return;root.dataset.ultimatePage=page;root.querySelectorAll('.w10u-nav nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));const main=root.querySelector('.w10-settings-main');main.innerHTML=`<div class="w10u-bread">Settings <span>›</span> ${esc(p.title)}</div>${p.body()}`;wire(root,page)}
+function wire(root,page){
+ root.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>render(root,b.dataset.page));
+ const on=(id,fn)=>{const e=root.querySelector('#'+id);if(e)e.addEventListener('change',fn)};
+ const val=(id,k)=>{const e=root.querySelector('#'+id);if(e)set(k,e.value);apply();persist()};
+ ['uScale','uDensity','uTheme','uMotion','uClock','uWeek','uLang','uRegion','uText','uMag','uFilter','uPerf','uTaskAlign','uLockStyle','uMouse','uPointer','uRepeat','uAutoPlay','uVpn','uProxy'].forEach(id=>{const e=root.querySelector('#'+id);if(e)e.onchange=()=>{const map={uScale:'scale',uDensity:'density',uTheme:'theme',uMotion:'motion',uClock:'clock',uWeek:'week',uLang:'language',uRegion:'region',uText:'text',uMag:'magnifier',uFilter:'colorFilter',uPerf:'performance',uTaskAlign:'taskbarAlign',uLockStyle:'lockStyle',uMouse:'mouseButton',uPointer:'pointer',uRepeat:'repeat',uAutoPlay:'autoplay',uVpn:'vpn',uProxy:'proxy'};saveStateKey(map[id],e.value);if(id==='uClock')applyClock();if(id==='uText'||id==='uMag')apply();}});
+ root.querySelectorAll('input[type=checkbox][id]').forEach(e=>{if(e.id==='uPinSave')return;e.onchange=()=>{const map={uTrans:'transparency',uNotify:'notifications',uBt:'bluetooth',uPrinter:'printer',uPen:'pen',uWifi:'wifi',uAir:'airplane',uMetered:'metered',uStartTrans:'startTransparency',uPinEnabled:'pinEnabled',uFamily:'family',uTyping:'typing',uSpeech:'speech',uGameMode:'gameMode',uGameBar:'gameBar',uGameSound:'gameSound',uHints:'gameHints',uCaptures:'captures',uController:'controller',uContrast:'contrast',uReduce:'motionReduced',uATrans:'transparency',uNarrator:'narrator',uIndex:'searchIndex',uSearchHist:'searchHistory',uSafe:'safeSearch',uSuggest:'searchSuggest',uCamera:'permCamera',uMicrophone:'permMicrophone',uLocation:'permLocation',uPrivNotify:'notifications',uActivity:'activity',uDiag:'diagnostics',uSuggestPriv:'suggestions',uAutoUpdate:'autoUpdate',uSecurity:'security',uBackup:'backup',uRecovery:'recovery',uOptional:'optional',uDefaults:'defaults',uStartup:'startup',uFocus:'focus',uMax:'autoMax',uDiag2:'diagnostics',uDev:'developer',uDebug:'debug'};const k=map[e.id];if(k)saveStateKey(k,e.checked?'1':'0');if(e.id==='uNarrator'&&e.checked)toast('Narrator is enabled for Windows Web');if(e.id==='uReduce'||e.id==='uATrans')apply();};});
+ const vol=root.querySelector('#uVol');if(vol){vol.oninput=()=>{root.querySelector('#uVolOut').value=vol.value;root.querySelector('#uVolOut').textContent=vol.value+'%';set('volume',vol.value);apply()};}
+ const accent=root.querySelector('#uAccent');if(accent)accent.oninput=()=>saveStateKey('accent',accent.value);
+ const ptheme=root.querySelector('#uPTheme');if(ptheme)ptheme.onchange=()=>saveStateKey('theme',ptheme.value);
+ const click=(id,fn)=>{const e=root.querySelector('#'+id);if(e)e.onclick=fn};
+ click('uTestSound',()=>{try{const C=window.AudioContext||window.webkitAudioContext;if(C&&Number(get('volume','70'))>0){const a=new C(),o=a.createOscillator(),g=a.createGain();g.gain.value=.03*(Number(get('volume','70'))/100);o.frequency.value=660;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.12)}}catch(e){}toast('Test sound')});
+ click('uTestToast',()=>{if(get('notifications','1')==='1')toast('Windows Web test notification');else toast('Notifications are disabled')});
+ click('uAbout',()=>{try{dialog2('About this PC','Windows Web Desktop\\nBuild 19045 Web\\nCPU: Web Core\\nRAM: 8 GB simulated')}catch(e){toast('Windows Web · Build 19045 Web')}});
+ click('uNetRefresh',()=>{const s=root.querySelector('#uNetState');if(s)s.textContent=navigator.onLine?'● Connected':'● Offline';toast(navigator.onLine?'Network status refreshed':'Browser is offline')});
+ click('uOpenPersonal',()=>window.openApp?.('personal'));
+ root.querySelectorAll('[data-app]').forEach(b=>b.onclick=()=>window.openApp?.(b.dataset.app));
+ click('uClearAppPrefs',()=>{if(confirm('Reset saved app preferences?')){Object.keys(localStorage).filter(k=>k.startsWith(LS+'disabled_')).forEach(k=>localStorage.removeItem(k));render(root,page)}});
+ click('uUserSave',()=>{const e=root.querySelector('#uUser');const n=(e?.value||'User').trim().replace(/\s+/g,' ')||'User';if(typeof window.__w10SetUsername==='function'){window.__w10SetUsername(n)}else{set('username',n);try{localStorage.setItem('win10sim_username_v1',n)}catch(_){}try{if(window.state){state.settings=state.settings||{};state.settings.username=n;persist()}}catch(_){} }try{localStorage.setItem('win10sim_username',n)}catch(_){}document.querySelectorAll('.w10-settings-profile strong,.w10u-profile strong,.win10-user b,#w10AccountName,.startUser b').forEach(x=>x.textContent=n);document.querySelectorAll('.w10-settings-avatar,.w10u-avatar,#w10AccountAvatar').forEach(x=>x.textContent=n.charAt(0).toUpperCase());const a=root.querySelector('.w10u-account>div');if(a)a.textContent=n.charAt(0).toUpperCase();toast('Account name saved');});
+ click('uPinSave',()=>changePin(root));
+ click('uResetScores',()=>{try{if(window.state){state.scores={};persist()}}catch(e){}Object.keys(localStorage).filter(k=>/score/i.test(k)||k.startsWith('gameScore')).forEach(k=>localStorage.removeItem(k));toast('Game scores reset')});
+ click('uClearSearch',()=>{['searchHistory','w10_search_history','win10_search_history'].forEach(k=>del(k));toast('Search history cleared')});
+ click('uClearActivity',()=>{set('activity','0');toast('Activity history cleared')});
+ click('uPrivacyReset',()=>{['permCamera','permMicrophone','permLocation','notifications','activity','diagnostics','suggestions'].forEach(k=>del(k));toast('Privacy permissions reset');render(root,page)});
+ click('uCheckUpdate',()=>{const e=root.querySelector('#uUpdateState');if(e)e.textContent='Checking for updates…';setTimeout(()=>{const d=new Date().toLocaleString();set('lastUpdate',d+' — No updates found');if(e)e.textContent=d+' — No updates found';toast('Windows Web is up to date')},900)});
+ click('uRecoveryBtn',()=>toast('Recovery options: reload to restart the simulated PC or use Reset Settings'));
+ click('uSecurityBtn',()=>toast(get('security','1')==='1'?'Windows Security: simulated protection active':'Windows Security is disabled'));
+ click('uDiagBtn',()=>toast('Diagnostics: '+innerWidth+'×'+innerHeight+' · '+(navigator.onLine?'online':'offline')+' · '+localStorage.length+' local items'));
+ click('uResetSettings',()=>{if(confirm('Reset only Windows Web Settings preferences?')){Object.keys(localStorage).filter(k=>k.startsWith(LS)).forEach(k=>localStorage.removeItem(k));apply();toast('Settings preferences reset');render(root,'advanced')}});
+}
+function changePin(root){const status=root.querySelector('#uPinStatus'),old=root.querySelector('#uOldPin')?.value||'',np=root.querySelector('#uNewPin')?.value||'',cf=root.querySelector('#uPin2')?.value||'';const PIN='win10sim_pin_additive_v1',AT='win10sim_pin_changed_additive_v1',DAY=86400000;let at=Number(localStorage.getItem(AT)||0),cur=localStorage.getItem(PIN)||'Lucia1213';if(Date.now()-at<DAY){status.textContent='PIN can be changed again in '+Math.ceil((DAY-(Date.now()-at))/3600000)+' hour(s).';return}if(old!==cur){status.textContent='Current PIN is incorrect.';return}if(!/^.{4,40}$/.test(np)){status.textContent='Use 4–40 characters.';return}if(np!==cf){status.textContent='The new PINs do not match.';return}localStorage.setItem(PIN,np);localStorage.setItem(AT,String(Date.now()));status.textContent='PIN changed successfully. You can change it again after 24 hours.';toast('PIN changed successfully');root.querySelectorAll('#uOldPin,#uNewPin,#uPin2').forEach(e=>e.value='')}
+function build(c){
+ c.innerHTML=`<div class="w10u-root"><aside class="w10u-nav"><div class="w10u-brand"><button class="w10u-back">‹</button><strong>Settings</strong></div><div class="w10u-profile"><div class="w10u-avatar">U</div><span><strong>${esc(get('username',localStorage.getItem('win10sim_username')||'User'))}</strong><small>Local account</small></span></div><div class="w10u-search"><span>⌕</span><input id="w10uSearch" placeholder="Find a setting"></div><nav>${[['home','⌂','Home'],['system','▣','System'],['devices','⌨','Devices'],['network','◉','Network & Internet'],['personalization','◈','Personalization'],['apps','▤','Apps'],['accounts','♙','Accounts'],['time','◷','Time & Language'],['gaming','◉','Gaming'],['accessibility','◎','Ease of Access'],['search','⌕','Search'],['privacy','♢','Privacy'],['update','↻','Update & Security'],['advanced','⚙','Advanced']].map(x=>`<button data-page="${x[0]}"><span>${x[1]}</span>${x[2]}</button>`).join('')}</nav></aside><main class="w10-settings-main"></main></div>`;
+ const root=c.querySelector('.w10u-root');root.dataset.w10Ultimate='1';root.querySelector('.w10u-back').onclick=()=>root.closest('.window')?.remove();
+ const search=root.querySelector('#w10uSearch');search.oninput=()=>{const q=search.value.toLowerCase();root.querySelectorAll('.w10u-nav nav button').forEach(b=>b.style.display=!q||b.textContent.toLowerCase().includes(q)?'flex':'none')};
+ render(root,'home');
+}
+function ultimateSettings(c){const w=c.closest('.window');if(w){w.classList.add('w10-settings-window');w.dataset.w10ultimateWindow='1';w.dataset.w10settings='1';}build(c)}
+window.__w10UltimateSettings=ultimateSettings;
+window.settingsApp=ultimateSettings;
+window.__canonicalAppRenderers=window.__canonicalAppRenderers||{};
+window.__canonicalAppRenderers.settings=ultimateSettings;
+window.proSettings=ultimateSettings;
+apply();
+})();
+</script>
+
+
+<!-- 512 LIVE APPLY REPAIR: wallpapers + account name without refresh -->
+<script id="w10-live-apply-repair">
+(()=>{
+'use strict';
+function applyLiveWallpaper(raw,name='Wallpaper'){
+  if(!raw)return;
+  const d=document.getElementById('desktop'),l=document.getElementById('lock'),login=document.getElementById('login');
+  const css=/^(linear-gradient|radial-gradient|conic-gradient|url\()/i.test(String(raw))?String(raw):'url("'+String(raw).replace(/"/g,'\\"')+'")';
+  if(d){d.style.setProperty('background-image',css,'important');d.style.setProperty('background-size','cover','important');d.style.setProperty('background-position','center','important');d.style.setProperty('background-repeat','no-repeat','important');}
+  [l,login].forEach(el=>{if(el&&!el.dataset.lockWallpaper){el.style.setProperty('background-image','linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.28)),'+css,'important');el.style.setProperty('background-size','cover','important');el.style.setProperty('background-position','center','important');el.style.setProperty('background-repeat','no-repeat','important');}});
+  try{if(window.state){state.wall=raw;state.settings=state.settings||{};if(typeof window.save==='function')window.save()}localStorage.setItem('win10_online_wall',raw);localStorage.setItem('win10_wall_name',name);localStorage.setItem('win10sim_wallpaper_live_v1',raw)}catch(e){}
+}
+window.__w10ApplyWallpaperLive=applyLiveWallpaper;
+document.addEventListener('click',e=>{
+  const b=e.target.closest?.('.wallCard,.wallReal,.w10wall'); if(!b)return;
+  const raw=b.style.backgroundImage||b.style.background||''; if(!raw)return;
+  const name=(b.querySelector('span,b,strong')?.textContent||b.title||'Wallpaper').trim();
+  applyLiveWallpaper(raw,name);
+},{capture:true});
+document.addEventListener('click',e=>{const b=e.target.closest?.('#apply');if(!b)return;const input=b.closest('.wallCustom')?.querySelector('#wall')||document.querySelector('#wall');if(input?.value)applyLiveWallpaper(input.value.trim(),'Custom wallpaper')},{capture:true});
+function refreshName(){let n='';try{n=localStorage.getItem('win10sim_username_v1')||localStorage.getItem('win10sim_username')||''}catch(e){}if(!n)return;document.querySelectorAll('.w10-settings-profile strong,.w10u-profile strong,.win10-user b,.startUser b,#w10AccountName').forEach(x=>x.textContent=n);document.querySelectorAll('.w10-settings-avatar,.w10u-avatar,#w10AccountAvatar').forEach(x=>x.textContent=n.charAt(0).toUpperCase());}
+const originalSet=window.__w10SetUsername;if(typeof originalSet==='function'&&!originalSet.__w10LiveWrapped){const wrapped=function(n){const out=originalSet.call(this,n);try{localStorage.setItem('win10sim_username',n)}catch(e){}refreshName();window.dispatchEvent(new Event('w10usernamechanged'));return out};wrapped.__w10LiveWrapped=true;window.__w10SetUsername=wrapped;}
+window.addEventListener('w10usernamechanged',refreshName);refreshName();
+let last='';function syncWall(){let w='';try{w=localStorage.getItem('win10sim_wallpaper_live_v1')||localStorage.getItem('win10_online_wall')||''}catch(e){}if(w&&w!==last){last=w;const d=document.getElementById('desktop');if(d){const css=/^(linear-gradient|radial-gradient|conic-gradient|url\()/i.test(w)?w:'url("'+w.replace(/"/g,'\\"')+'")';d.style.setProperty('background-image',css,'important');d.style.setProperty('background-size','cover','important');d.style.setProperty('background-position','center','important');d.style.setProperty('background-repeat','no-repeat','important');}}}
+setTimeout(syncWall,50);setInterval(()=>{syncWall();refreshName()},500);
 })();
 </script>
