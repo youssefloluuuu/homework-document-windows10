@@ -34609,6 +34609,162 @@ body.w10-dark-ui #actionCenter .v-q,body.w10-dark-ui .v-action .v-q{background:r
   background:rgba(255,255,255,.12)!important;
 }
 </style>
+
+<style id="v73-global-dark-foreground-fix">
+/* V73 — Global Dark Mode foreground correction.  Keep icons/media/special dark surfaces intact. */
+body.w10-dark-ui #startMenu,
+body.w10-dark-ui #windows .window,
+body.w10-dark-ui #globalDialog,
+body.w10-dark-ui .masterApp,
+body.w10-dark-ui .v-window,
+body.w10-dark-ui .v-app,
+body.w10-dark-ui .appShell,
+body.w10-dark-ui .settings,
+body.w10-dark-ui .settings2,
+body.w10-dark-ui .settingsMain,
+body.w10-dark-ui .appBody,
+body.w10-dark-ui .w10-panel,
+body.w10-dark-ui .w10-card,
+body.w10-dark-ui .w10-mega-card,
+body.w10-dark-ui .v-card,
+body.w10-dark-ui .card,
+body.w10-dark-ui .cardBtn,
+body.w10-dark-ui .listRow,
+body.w10-dark-ui .v-listrow,
+body.w10-dark-ui .tmPro,
+body.w10-dark-ui .tmStatCard,
+body.w10-dark-ui .tmPerfCard,
+body.w10-dark-ui .tmGroup,
+body.w10-dark-ui .tmUserCard{
+  color:#f1f1f1 !important;
+}
+body.w10-dark-ui #startMenu h1,
+body.w10-dark-ui #startMenu h2,
+body.w10-dark-ui #startMenu h3,
+body.w10-dark-ui #startMenu h4,
+body.w10-dark-ui #startMenu h5,
+body.w10-dark-ui #startMenu h6,
+body.w10-dark-ui #startMenu p,
+body.w10-dark-ui #startMenu span,
+body.w10-dark-ui #startMenu label,
+body.w10-dark-ui #startMenu li,
+body.w10-dark-ui #startMenu td,
+body.w10-dark-ui #startMenu th,
+body.w10-dark-ui #windows .window h1,
+body.w10-dark-ui #windows .window h2,
+body.w10-dark-ui #windows .window h3,
+body.w10-dark-ui #windows .window h4,
+body.w10-dark-ui #windows .window h5,
+body.w10-dark-ui #windows .window h6,
+body.w10-dark-ui #windows .window p,
+body.w10-dark-ui #windows .window span,
+body.w10-dark-ui #windows .window label,
+body.w10-dark-ui #windows .window li,
+body.w10-dark-ui #windows .window td,
+body.w10-dark-ui #windows .window th,
+body.w10-dark-ui #globalDialog h1,
+body.w10-dark-ui #globalDialog h2,
+body.w10-dark-ui #globalDialog h3,
+body.w10-dark-ui #globalDialog h4,
+body.w10-dark-ui #globalDialog p,
+body.w10-dark-ui #globalDialog label{
+  color:#f1f1f1 !important;
+}
+/* Catch old inline light-theme text declarations without touching images/icons/canvas. */
+body.w10-dark-ui #startMenu [style*="color:#111"],
+body.w10-dark-ui #startMenu [style*="color:#222"],
+body.w10-dark-ui #startMenu [style*="color:#333"],
+body.w10-dark-ui #startMenu [style*="color:#444"],
+body.w10-dark-ui #startMenu [style*="color:#555"],
+body.w10-dark-ui #windows .window [style*="color:#111"],
+body.w10-dark-ui #windows .window [style*="color:#222"],
+body.w10-dark-ui #windows .window [style*="color:#333"],
+body.w10-dark-ui #windows .window [style*="color:#444"],
+body.w10-dark-ui #windows .window [style*="color:#555"]{
+  color:#f1f1f1 !important;
+}
+/* Form controls follow Dark Mode too. */
+body.w10-dark-ui #startMenu input,
+body.w10-dark-ui #startMenu textarea,
+body.w10-dark-ui #startMenu select,
+body.w10-dark-ui #windows .window input,
+body.w10-dark-ui #windows .window textarea,
+body.w10-dark-ui #windows .window select,
+body.w10-dark-ui #globalDialog input,
+body.w10-dark-ui #globalDialog textarea,
+body.w10-dark-ui #globalDialog select{
+  color:#f5f5f5 !important;
+  caret-color:#fff !important;
+}
+body.w10-dark-ui #startMenu input::placeholder,
+body.w10-dark-ui #startMenu textarea::placeholder,
+body.w10-dark-ui #windows .window input::placeholder,
+body.w10-dark-ui #windows .window textarea::placeholder,
+body.w10-dark-ui #globalDialog input::placeholder,
+body.w10-dark-ui #globalDialog textarea::placeholder{
+  color:#aaa !important;
+  opacity:1 !important;
+}
+/* Preserve intentionally dark surfaces and icon/media rendering. */
+body.w10-dark-ui .terminal,
+body.w10-dark-ui .terminal2,
+body.w10-dark-ui .v-terminal,
+body.w10-dark-ui .calcDisplay,
+body.w10-dark-ui .calcDisplay2,
+body.w10-dark-ui .v-calc-display,
+body.w10-dark-ui canvas,
+body.w10-dark-ui img,
+body.w10-dark-ui svg{
+  color:inherit !important;
+}
+</style>
+<style id="v80-smaller-taskbar">
+/* V80 — Make only the bottom taskbar/search area smaller. */
+#taskbar,.taskbar{height:42px!important;min-height:42px!important}
+#startBtn{width:48px!important;height:42px!important;min-height:42px!important}
+#searchBox{height:29px!important;width:250px!important;max-width:250px!important;margin-left:5px!important;padding:0 10px!important;font-size:13px!important}
+#searchBox:focus{width:285px!important;max-width:285px!important}
+#taskApps{height:42px!important}
+#taskApps .task,#taskApps .v-task,.taskbar .task,.taskbar .v-task{height:42px!important;min-height:42px!important;padding-left:10px!important;padding-right:10px!important;font-size:12px!important}
+#tray{height:42px!important;gap:8px!important;padding:0 10px!important;font-size:12px!important}
+#startMenu{bottom:42px!important}
+.window.max,.window.v-max{height:calc(100vh - 42px)!important}
+.v-search{bottom:42px!important}
+.v-action{height:calc(100vh - 42px)!important}
+#actionCenter{bottom:42px!important}
+@media(max-width:700px){#searchBox{width:105px!important;max-width:105px!important}#searchBox:focus{width:125px!important;max-width:125px!important}}
+</style>
+
+<style id="v81-search-liquid-glass-fix">
+/* V81 — Canonical Windows Search panel follows the existing liquid-glass slider. */
+#w10-v31-search{
+  background:#1d1d1d;
+  color:#fff;
+}
+body:not(.w10-glass-off) #w10-v31-search{
+  background:rgba(18,26,35,var(--lg-shared-alpha))!important;
+  background-image:none!important;
+  border:1px solid rgba(255,255,255,.14)!important;
+  box-shadow:0 18px 50px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.09)!important;
+  backdrop-filter:blur(var(--lg-shared-blur)) saturate(112%) brightness(1.02)!important;
+  -webkit-backdrop-filter:blur(var(--lg-shared-blur)) saturate(112%) brightness(1.02)!important;
+}
+body:not(.w10-glass-off) #w10-v31-search .w10-v31-search-head{
+  color:rgba(255,255,255,.78)!important;
+  border-bottom-color:rgba(255,255,255,.11)!important;
+}
+body:not(.w10-glass-off) #w10-v31-search .w10-v31-search-row{
+  background:rgba(255,255,255,var(--lg-shared-light))!important;
+  border-color:rgba(255,255,255,.08)!important;
+  color:#fff!important;
+}
+body:not(.w10-glass-off) #w10-v31-search .w10-v31-search-row:hover{
+  background:rgba(255,255,255,calc(var(--lg-shared-light)*1.35))!important;
+}
+body:not(.w10-glass-off) #w10-v31-search .w10-v31-file{
+  border-top-color:rgba(255,255,255,.10)!important;
+}
+</style>
 </body>
 <style id="tm-v69-less-glass">
 /* Task Manager only: slightly more solid than the rest of the desktop. */
@@ -34714,4 +34870,244 @@ body.w10-dark-ui #actionCenter .v-q,body.w10-dark-ui .v-action .v-q{background:r
 .window[data-app="task"] .tmProcIcon{background:rgba(255,255,255,.10)!important}
 .window[data-app="task"] .tmServiceState{background:rgba(255,255,255,.09)!important}
 </style>
+
+<style id="v75-dark-text-dual-theme-fix">
+/* V75 — Fix the real theme class used by the Ultimate Settings theme as well as the legacy dark toggle. */
+body.w10-dark-ui .w10-darktext-fix,
+body.w10-ult-dark .w10-darktext-fix{color:#f1f1f1!important}
+</style>
+<script id="v76-dark-text-runtime-removed">
+(()=>{
+  /* V76: Removed the expensive document-wide Dark Mode MutationObserver from V75.
+     Dark Mode styling remains CSS-driven; no continuous DOM scanning or computed-style
+     checks are performed on every UI mutation. */
+})();
+</script>
+
+<style id="v78-real-dark-mode-settings-edge-fix">
+/* V78 — targeted Dark Mode repair for the actual Settings sidebar and dedicated Edge UI.
+   No DOM scanning/observer and no global theme rewrite. */
+body.w10-ult-dark .w10u-nav nav button,
+body.w10-dark-ui .w10u-nav nav button,
+body.w10-ult-dark .w10-settings-menu button,
+body.w10-dark-ui .w10-settings-menu button{
+  color:#eee!important;
+  background:transparent!important;
+}
+body.w10-ult-dark .w10u-nav nav button:hover,
+body.w10-dark-ui .w10u-nav nav button:hover,
+body.w10-ult-dark .w10-settings-menu button:hover,
+body.w10-dark-ui .w10-settings-menu button:hover{
+  background:rgba(255,255,255,.09)!important;
+  color:#fff!important;
+}
+body.w10-ult-dark .w10u-nav nav button.active,
+body.w10-dark-ui .w10u-nav nav button.active,
+body.w10-ult-dark .w10-settings-menu button.active,
+body.w10-dark-ui .w10-settings-menu button.active{
+  background:rgba(255,255,255,.13)!important;
+  color:#fff!important;
+  border-left-color:#0078d4!important;
+}
+body.w10-ult-dark .w10u-nav nav button.active span,
+body.w10-dark-ui .w10u-nav nav button.active span,
+body.w10-ult-dark .w10-settings-menu button.active span,
+body.w10-dark-ui .w10-settings-menu button.active span{
+  color:#4aa3ff!important;
+}
+
+/* Dedicated fake Edge window — the generic dark rules do not reach these classes. */
+body.w10-ult-dark .w10-edge,
+body.w10-dark-ui .w10-edge{
+  background:rgba(18,22,27,.96)!important;
+  color:#eee!important;
+}
+body.w10-ult-dark .w10-edge-toolbar,
+body.w10-dark-ui .w10-edge-toolbar{
+  background:rgba(26,31,37,.92)!important;
+  border-bottom-color:rgba(255,255,255,.12)!important;
+  color:#eee!important;
+}
+body.w10-ult-dark .w10-edge-tab.active,
+body.w10-dark-ui .w10-edge-tab.active{
+  background:#2b3138!important;
+  color:#fff!important;
+}
+body.w10-ult-dark .w10-edge-tab:hover,
+body.w10-dark-ui .w10-edge-tab:hover{
+  background:#3a414a!important;
+}
+body.w10-ult-dark .w10-edge-nav,
+body.w10-dark-ui .w10-edge-nav,
+body.w10-ult-dark .w10-edge-toolbar-btn,
+body.w10-dark-ui .w10-edge-toolbar-btn{
+  color:#eee!important;
+}
+body.w10-ult-dark .w10-edge-nav:hover,
+body.w10-dark-ui .w10-edge-nav:hover,
+body.w10-ult-dark .w10-edge-toolbar-btn:hover,
+body.w10-dark-ui .w10-edge-toolbar-btn:hover{
+  background:#3a414a!important;
+}
+body.w10-ult-dark .w10-edge-address,
+body.w10-dark-ui .w10-edge-address{
+  background:#20252b!important;
+  color:#fff!important;
+  border-color:#4b535d!important;
+}
+body.w10-ult-dark .w10-edge-address:hover,
+body.w10-dark-ui .w10-edge-address:hover{border-color:#68727e!important}
+body.w10-ult-dark .w10-edge-body,
+body.w10-dark-ui .w10-edge-body,
+body.w10-ult-dark .w10-edge-webview,
+body.w10-dark-ui .w10-edge-webview,
+body.w10-ult-dark .w10-edge-frame-wrap,
+body.w10-dark-ui .w10-edge-frame-wrap{
+  background:#171b20!important;
+  color:#eee!important;
+}
+body.w10-ult-dark .w10-edge-page,
+body.w10-dark-ui .w10-edge-page{
+  background:
+    radial-gradient(circle at 50% 5%,rgba(40,90,125,.34) 0,transparent 34%),
+    linear-gradient(#171b20,#11151a)!important;
+  color:#eee!important;
+}
+body.w10-ult-dark .w10-edge-subtitle,
+body.w10-dark-ui .w10-edge-subtitle,
+body.w10-ult-dark .w10-edge-result-head small,
+body.w10-dark-ui .w10-edge-result-head small,
+body.w10-ult-dark .w10-edge-result p,
+body.w10-dark-ui .w10-edge-result p,
+body.w10-ult-dark .w10-edge-loading,
+body.w10-dark-ui .w10-edge-loading,
+body.w10-ult-dark .w10-edge-empty,
+body.w10-dark-ui .w10-edge-empty{
+  color:#aeb6bf!important;
+}
+body.w10-ult-dark .w10-edge-search,
+body.w10-dark-ui .w10-edge-search{
+  background:#20252b!important;
+  border-color:#4b535d!important;
+  box-shadow:0 5px 22px rgba(0,0,0,.28)!important;
+}
+body.w10-ult-dark .w10-edge-search-input,
+body.w10-dark-ui .w10-edge-search-input{
+  color:#fff!important;
+}
+body.w10-ult-dark .w10-edge-shortcut,
+body.w10-dark-ui .w10-edge-shortcut,
+body.w10-ult-dark .w10-edge-card,
+body.w10-dark-ui .w10-edge-card{
+  background:#22272d!important;
+  color:#eee!important;
+  border-color:#414951!important;
+}
+body.w10-ult-dark .w10-edge-shortcut:hover,
+body.w10-dark-ui .w10-edge-shortcut:hover,
+body.w10-ult-dark .w10-edge-card:hover,
+body.w10-dark-ui .w10-edge-card:hover{
+  background:#2d343c!important;
+  border-color:#5f7c96!important;
+}
+body.w10-ult-dark .w10-edge-card p,
+body.w10-dark-ui .w10-edge-card p{
+  color:#aeb6bf!important;
+}
+body.w10-ult-dark .w10-edge-result-head,
+body.w10-dark-ui .w10-edge-result-head,
+body.w10-ult-dark .w10-edge-result,
+body.w10-dark-ui .w10-edge-result{
+  border-color:#3b424a!important;
+}
+body.w10-ult-dark .w10-edge-panel,
+body.w10-dark-ui .w10-edge-panel{
+  background:#20252b!important;
+  color:#eee!important;
+  border-color:#4b535d!important;
+  box-shadow:0 12px 40px rgba(0,0,0,.55)!important;
+}
+body.w10-ult-dark .w10-edge-panel-head,
+body.w10-dark-ui .w10-edge-panel-head{
+  background:#292f36!important;
+  color:#fff!important;
+  border-bottom-color:#414951!important;
+}
+body.w10-ult-dark .w10-edge-panel-close,
+body.w10-dark-ui .w10-edge-panel-close{
+  color:#eee!important;
+}
+body.w10-ult-dark .w10-edge-panel-close:hover,
+body.w10-dark-ui .w10-edge-panel-close:hover{
+  background:#3a414a!important;
+}
+body.w10-ult-dark .w10-edge-panel-item:hover,
+body.w10-dark-ui .w10-edge-panel-item:hover{
+  background:#303840!important;
+}
+body.w10-ult-dark .w10-edge-status,
+body.w10-dark-ui .w10-edge-status,
+body.w10-ult-dark .w10-edge-web-tools,
+body.w10-dark-ui .w10-edge-web-tools{
+  background:#20252b!important;
+  color:#aeb6bf!important;
+  border-color:#3b424a!important;
+}
+body.w10-ult-dark .w10-edge-web-tools button,
+body.w10-dark-ui .w10-edge-web-tools button{
+  background:#2a3037!important;
+  color:#eee!important;
+  border-color:#4b535d!important;
+}
+body.w10-ult-dark .w10-edge-web-tools button:hover,
+body.w10-dark-ui .w10-edge-web-tools button:hover{
+  background:#38414a!important;
+}
+body.w10-ult-dark .w10-edge-embed-overlay,
+body.w10-dark-ui .w10-edge-embed-overlay,
+body.w10-ult-dark .w10-edge-download-bar,
+body.w10-dark-ui .w10-edge-download-bar{
+  background:#1b2026!important;
+  color:#eee!important;
+}
+body.w10-ult-dark .w10-edge-embed-box,
+body.w10-dark-ui .w10-edge-embed-box{
+  background:#242a31!important;
+  border-color:#414951!important;
+  box-shadow:0 8px 30px rgba(0,0,0,.35)!important;
+}
+body.w10-ult-dark .w10-edge-embed-box p,
+body.w10-dark-ui .w10-edge-embed-box p{
+  color:#aeb6bf!important;
+}
+body.w10-ult-dark .w10-edge-download-bar,
+body.w10-dark-ui .w10-edge-download-bar{
+  border-color:#4b535d!important;
+  box-shadow:0 6px 24px rgba(0,0,0,.45)!important;
+}
+</style>
+<style id="v79-bing-dark-search-fix">
+body.w10-ult-dark .bing-search-shell,
+body.w10-dark-ui .bing-search-shell{
+  background:rgba(24,29,35,.92)!important;
+  border:1px solid rgba(255,255,255,.14)!important;
+  box-shadow:0 12px 40px rgba(0,0,0,.34),0 3px 10px rgba(0,0,0,.24)!important;
+}
+body.w10-ult-dark .bing-search-glass,
+body.w10-dark-ui .bing-search-glass{color:#c3ccd5!important}
+body.w10-ult-dark .bing-main-search,
+body.w10-dark-ui .bing-main-search{color:#fff!important}
+body.w10-ult-dark .bing-main-search::placeholder,
+body.w10-dark-ui .bing-main-search::placeholder{color:#a8b1bb!important}
+body.w10-ult-dark .bing-search-camera,
+body.w10-dark-ui .bing-search-camera{color:#d6dde5!important}
+body.w10-ult-dark .bing-search-mic,
+body.w10-dark-ui .bing-search-mic{color:#62a8ff!important}
+body.w10-ult-dark .bing-search-mic:hover,
+body.w10-dark-ui .bing-search-mic:hover,
+body.w10-ult-dark .bing-search-camera:hover,
+body.w10-dark-ui .bing-search-camera:hover{background:rgba(255,255,255,.10)!important}
+</style>
+
+
 </html>
