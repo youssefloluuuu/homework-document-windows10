@@ -34416,7 +34416,22 @@ function load(){
  if(!raw.length){try{const x=JSON.parse(localStorage.getItem('w10-v27-desktop-shortcuts')||localStorage.getItem('w10-v25-desktop-shortcuts')||'null');if(Array.isArray(x?.items))raw=x.items.filter(o=>!deletedShortcuts.has(canon(o?.id)))}catch(e){}}
  const seen=new Set(),out=[];
  for(const o of raw){const id=canon(o?.id);if(!id||!src(id)||!installed(id)||seen.has(id))continue;seen.add(id);out.push({id,x:Number(o?.x),y:Number(o?.y)})}
- if(!out.length){const DEFAULTS=['settings','task','notepad','photos'];out.push(...DEFAULTS.filter(id=>!deletedShortcuts.has(canon(id))&&installed(id)).map((id,i)=>({id,x:18+(i%4)*88,y:18+Math.floor(i/4)*86})));}
+ if(!out.length){
+  const DEFAULTS=['store','edge','task','explorer','notepad','calculator','paint','cmd','settings','weather','recycle','xbox','calendar','movies'];
+  const DEFAULT_POS={
+    store:[18,18],edge:[106,18],
+    task:[18,104],explorer:[106,104],
+    notepad:[18,190],calculator:[106,190],
+    paint:[18,276],cmd:[106,276],
+    settings:[18,362],weather:[106,362],
+    recycle:[18,448],xbox:[106,448],
+    calendar:[18,534],movies:[106,534]
+  };
+  out.push(...DEFAULTS.filter(id=>!deletedShortcuts.has(canon(id))&&installed(id)).map((id,i)=>{
+    const p=DEFAULT_POS[id]||[18+(i%2)*88,18+Math.floor(i/2)*86];
+    return {id,x:p[0],y:p[1]};
+  }));
+}
  out.forEach(o=>{if(!Number.isFinite(o.x))o.x=18;if(!Number.isFinite(o.y))o.y=18});
  // Repair the old “everything in one pile” state once, but never overwrite deliberate placements.
  if(out.length>1){const xs=out.map(o=>o.x),ys=out.map(o=>o.y);const rangeX=Math.max(...xs)-Math.min(...xs),rangeY=Math.max(...ys)-Math.min(...ys);if(rangeX<30&&rangeY<30){const cols=Math.min(4,Math.max(1,Math.ceil(Math.sqrt(out.length))));out.forEach((o,i)=>{o.x=18+(i%cols)*88;o.y=18+Math.floor(i/cols)*86});}}
