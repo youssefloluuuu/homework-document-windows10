@@ -1018,6 +1018,24 @@ body.w10-ult-contrast #w512-power-menu-final button{
   filter:inherit !important;
 }
 </style>
+
+<style id="w10-context-menu-shared-liquid-glass-v2">
+/* Match the desktop context menu to the simulator's shared Liquid Glass surface. */
+body:not(.w10-glass-off) #contextMenu:not(.hidden){
+  background:rgba(18,26,35,var(--lg-shared-alpha,.16))!important;
+  border:1px solid rgba(255,255,255,.15)!important;
+  box-shadow:0 14px 36px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.10)!important;
+  backdrop-filter:blur(var(--lg-shared-blur,7px)) saturate(118%)!important;
+  -webkit-backdrop-filter:blur(var(--lg-shared-blur,7px)) saturate(118%)!important;
+}
+body:not(.w10-glass-off) #contextMenu:not(.hidden)>div{
+  background:rgba(255,255,255,calc(var(--lg-shared-alpha,.16)*.72))!important;
+  transition:background .32s ease,box-shadow .32s ease!important;
+}
+body:not(.w10-glass-off) #contextMenu:not(.hidden)>div:hover{
+  background:rgba(255,255,255,calc(var(--lg-shared-alpha,.16)*1.05))!important;
+}
+</style>
 </head>
 <body>
 <div data-final-boot="1" id="boot" style="background:#000!important;color:#fff!important"><svg aria-hidden="true" class="initial-final-boot-logo" height="76" viewbox="0 0 88 88" width="76"><path d="M7 10 40 6v35H7V10zm39-5 35-4v40H46V5zM7 46h33v36L7 78V46zm39 0h35v42l-35-4V46z" fill="#0078d7"></path></svg><div aria-hidden="true" class="initial-final-boot-spinner"><i></i><i></i><i></i><i></i><i></i></div></div>
@@ -1186,10 +1204,10 @@ document.addEventListener('mousemove',e=>{if(r){w.style.width=Math.max(280,sw+e.
 document.addEventListener('mouseup',()=>r=false);
 };
 
-let menu=document.createElement('div');menu.id='contextMenu';menu.className='hidden';menu.innerHTML='<div data-a="refresh">↻ Refresh</div><div data-a="folder">📁 New folder</div><div data-a="file">📄 New text document</div><div data-a="settings">🖥 Display settings</div><div data-a="personal">🎨 Personalize</div><div data-a="sort">↕ Sort by name</div>';desktop.appendChild(menu);
+let menu=document.createElement('div');menu.id='contextMenu';menu.className='hidden';menu.innerHTML='<div data-a="refresh">Refresh</div><div data-a="folder">New folder</div><div data-a="file">New text document</div><div data-a="explorer">Open File Explorer</div><div data-a="settings">Display settings</div><div data-a="personal">Personalize</div><div data-a="sort">Sort by name</div>';desktop.appendChild(menu);
 desktop.addEventListener('contextmenu',e=>{if(e.target.closest('.window')||e.target.closest('#taskbar')||e.target.closest('#startMenu'))return;e.preventDefault();menu.classList.remove('hidden');menu.style.left=Math.min(e.clientX,innerWidth-215)+'px';menu.style.top=Math.min(e.clientY,innerHeight-300)+'px'});
 document.addEventListener('click',e=>{if(!e.target.closest('#contextMenu'))menu.classList.add('hidden')});
-menu.onclick=e=>{let a=e.target.dataset.a;if(!a)return;menu.classList.add('hidden');if(a==='refresh')toast('Desktop refreshed');if(a==='folder')newFolder();if(a==='file')newFile();if(a==='settings'||a==='personal')openApp('settings');if(a==='sort')toast('Desktop icons sorted by name')};
+menu.onclick=e=>{let a=e.target.dataset.a;if(!a)return;menu.classList.add('hidden');if(a==='refresh')toast('Desktop refreshed');if(a==='folder')newFolder();if(a==='file')newFile();if(a==='explorer')openApp('explorer');if(a==='settings'||a==='personal')openApp('settings');if(a==='sort')toast('Desktop icons sorted by name')};
 
 /* Legacy search UI intentionally disabled. The V4 .v-search panel is the single
    search-results surface and routes into the canonical app registry. */
@@ -2949,19 +2967,14 @@ window.__512VideoDiscovery = window.__512VideoDiscovery || (function(){
     if(/\/discover$/i.test(u))u=u.slice(0,-9).replace(/\/+$/,'');
     return u;
   };
-  const get=()=>{
-    if(window.__512_VIDEO_DISCOVERY_URL)return normalize(window.__512_VIDEO_DISCOVERY_URL);
-    try{
-      const x=JSON.parse(localStorage.getItem(STORE)||'{}');
-      return normalize(x.url||'');
-    }catch(e){return '';}
+  const BUILTIN_URL='https://512-tiktok-discovery.yelhelwa2848.workers.dev';
+  const get=()=>BUILTIN_URL;
+  const set=()=>{
+    window.__512_VIDEO_DISCOVERY_URL=BUILTIN_URL;
+    try{localStorage.setItem(STORE,JSON.stringify({url:BUILTIN_URL,updatedAt:Date.now()}))}catch(e){}
+    return BUILTIN_URL;
   };
-  const set=url=>{
-    const clean=normalize(url);
-    window.__512_VIDEO_DISCOVERY_URL=clean;
-    try{localStorage.setItem(STORE,JSON.stringify({url:clean,updatedAt:Date.now()}))}catch(e){}
-    return clean;
-  };
+  window.__512_VIDEO_DISCOVERY_URL=BUILTIN_URL;
   const search=async q=>{
     const base=get();
     if(!base) return null;
@@ -30616,7 +30629,7 @@ function setupActionTray(){let tr=by('tray');if(!tr)return;let existing=tr.query
 function setupContext(){if(by('vctx'))return;let m=document.createElement('div');m.id='vctx';m.style.cssText='position:fixed;display:none;z-index:100040;background:#202020;color:#fff;box-shadow:0 10px 35px #0008;min-width:220px;padding:5px';m.innerHTML=['Refresh','New folder','New text document','Open File Explorer','Settings','Personalize','Sort by name'].map(x=>'<button style="display:block;width:100%;padding:9px;text-align:left;color:#fff;background:none;border:0" data-x="'+x+'">'+x+'</button>').join('');document.body.appendChild(m);desk.addEventListener('contextmenu',e=>{if(e.target.closest('.window,#taskbar,#startMenu,#lock,#login'))return;e.preventDefault();m.style.display='block';m.style.left=Math.min(e.clientX,innerWidth-225)+'px';m.style.top=Math.min(e.clientY,innerHeight-280)+'px'});document.addEventListener('click',e=>{if(!e.target.closest('#vctx'))m.style.display='none'});m.onclick=e=>{let x=e.target.dataset.x;if(!x)return;if(x==='Refresh')toast2('Desktop refreshed');if(x==='New folder'){let n=prompt('Folder name','New Folder');if(n){state.files.push({name:n,type:'folder'});persist();notify('File Explorer','Folder created')}}if(x==='New text document'){let n=prompt('File name','New Text Document.txt');if(n){state.files.push({name:n,type:'file',text:''});persist();notify('File Explorer','File created')}}if(x==='Open File Explorer')open('explorer');if(x==='Settings')open('settings');if(x==='Personalize')open('personal');if(x==='Sort by name'){state.files.sort((a,b)=>a.name.localeCompare(b.name));persist();toast2('Files sorted by name')}m.style.display='none'}}
 function shortcuts(){if(window.__v4keys)return;window.__v4keys=1;document.addEventListener('keydown',e=>{if(e.altKey&&e.key==='F4'){let ws=Object.values(apps).sort((a,b)=>(+b.dataset.z)-(+a.dataset.z));if(ws[0])closeW(ws[0]);return}if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='escape'){e.preventDefault();open('task');return}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='e'&&!e.ctrlKey){e.preventDefault();open('explorer');return}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='r'&&!e.ctrlKey){e.preventDefault();open('cmd');return}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='d'&&!e.ctrlKey){e.preventDefault();let visible=Object.values(apps).some(w=>!w.classList.contains('hidden'));Object.values(apps).forEach(w=>visible?minW(w):focus(w));return}if(e.altKey&&e.key==='Tab'){e.preventDefault();let ws=Object.values(apps).filter(w=>!w.classList.contains('hidden')).sort((a,b)=>(+b.dataset.z)-(+a.dataset.z));if(ws.length>1)focus(ws[1])}})}
 function setupPower(){let host=taskApps?.parentElement;if(!host||host.querySelector('.v-task[data-512-power]'))return;let b=document.createElement('button');b.className='v-task';b.dataset['512Power']='1';b.textContent='⏻';b.title='Power';b.type='button';b.onclick=e=>{e.preventDefault();e.stopImmediatePropagation();window.__512PowerAuthority?.open(b)};host.appendChild(b)}
-function bootEnhance(){installStart();addDesktopIcons();setupSearch();setupActionTray();setupContext();shortcuts();setupPower();if(!by('vnotif')){let n=document.createElement('div');n.id='vnotif';document.body.appendChild(n)};if(state.settings.accent)document.documentElement.style.setProperty('--v-accent',state.settings.accent)}
+function bootEnhance(){installStart();addDesktopIcons();setupSearch();setupActionTray();shortcuts();setupPower();if(!by('vnotif')){let n=document.createElement('div');n.id='vnotif';document.body.appendChild(n)};if(state.settings.accent)document.documentElement.style.setProperty('--v-accent',state.settings.accent)}
 setTimeout(bootEnhance,120);setTimeout(()=>{if(!desk.classList.contains('hidden'))bootEnhance()},1500);
 })();
 
@@ -31486,8 +31499,8 @@ function addAppsToStart(){
   /* Disabled: the master Start menu contains the real applications only. */
   document.querySelectorAll('#startMenu .w10-extra-apps,#startMenu .mega-extra-apps').forEach(x=>x.remove());
 }
-function animateIcons(){qa('#icons .icon,#icons .deskicon').forEach((x,i)=>{x.style.animationDelay=(i*45)+'ms';x.classList.add('w10-icon-enter')})}
-function init(){scenicDefault();document.querySelector('[data-ultra-apps]')?.remove();document.querySelectorAll('#startMenu .w10-extra-apps,#startMenu .mega-extra-apps').forEach(x=>x.remove());animateIcons();let s=document.createElement('style');s.textContent='@keyframes iconEnter{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}#icons .w10-icon-enter{animation:iconEnter .35s ease both}';document.head.appendChild(s)}
+function animateIcons(){qa('#icons .icon,#icons .deskicon').forEach(x=>{x.style.animationDelay='0ms';x.classList.add('w10-icon-enter')})}
+function init(){document.querySelector('[data-ultra-apps]')?.remove();document.querySelectorAll('#startMenu .w10-extra-apps,#startMenu .mega-extra-apps').forEach(x=>x.remove());animateIcons();let s=document.createElement('style');s.textContent='@keyframes iconEnter{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}#icons .w10-icon-enter{animation:iconEnter .06s ease both}';document.head.appendChild(s)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else setTimeout(init,50);
 })();
 </script>
@@ -31504,7 +31517,7 @@ const photo='https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=f
 function setScenic(){let d=qs('#desktop'),l=qs('#lock');let bg='url("'+photo+'"),'+fallbackURL;[d,l].forEach((x,i)=>{if(!x)return;x.style.backgroundImage=(i?'linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.25)),':'')+bg;x.style.backgroundSize='cover';x.style.backgroundPosition='center';x.style.backgroundColor='#31505b'});try{localStorage.setItem('win10_online_wall',photo);localStorage.setItem('win10_wall_name','Alpine Lake')}catch(e){}}
 function login(){all('.window').forEach(x=>x.remove());qs('#desktop')?.classList.add('hidden');qs('#lock')?.classList.add('hidden');qs('#login')?.classList.remove('hidden');qs('#pin')?.focus();let h=qs('#pinHint');if(h)h.textContent='Enter your PIN to continue'}
 function addOnlineGallery(){let settings=qs('#win10SettingsPro');if(!settings||settings.dataset.gallery2)return;settings.dataset.gallery2='1';let section=settings.querySelector('[data-section="personal"]');if(!section)return;let h=document.createElement('div');h.style='margin-top:22px;padding-top:18px;border-top:1px solid #0002';h.innerHTML='<h2>Online wallpaper gallery</h2><p style="color:#666">Fresh scenic photography from the web. Offline fallback is built in.</p><div id="w10OnlineGallery" class="w10wallgrid"></div>';section.appendChild(h);let g=h.querySelector('#w10OnlineGallery');[['Alpine Lake',photo],['Forest', 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=2560&q=88'],['Ocean','https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2560&q=88'],['Mountain Valley','https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2560&q=88'],['Coast','https://images.unsplash.com/photo-1476673160081-cf065607f449?auto=format&fit=crop&w=2560&q=88'],['Lake Sunrise','https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1920&q=88']].forEach(([n,u])=>{let b=document.createElement('button');b.className='w10wall';b.style.backgroundImage='url("'+u+'")';b.innerHTML='<b>'+n+'</b>';b.onclick=()=>{window.win10SetWallpaper?.('url("'+u+'")',n);try{localStorage.setItem('win10_online_wall',u)}catch(e){}};g.appendChild(b)})}
-function init(){setScenic();addOnlineGallery();setTimeout(addOnlineGallery,700)}
+function init(){addOnlineGallery();setTimeout(addOnlineGallery,700)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else setTimeout(init,20);
 })();
 </script>
@@ -31574,7 +31587,7 @@ function makeWin10Lock(){
         '")';
 
   lock.style.backgroundImage=
-    'linear-gradient(rgba(0,0,0,.16),rgba(0,0,0,.38)),'+
+    'linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.24)),'+
     bg;
 
   lock.style.backgroundSize='cover';
@@ -33260,7 +33273,12 @@ function renderWallPreviews(){
 }
 renderWallPreviews();
 [300,900,1800,3000].forEach(t=>setTimeout(renderWallPreviews,t));
-const wallObs=new MutationObserver(()=>renderWallPreviews());
+let wallRepairQueued=false;
+const wallObs=new MutationObserver(()=>{
+  if(wallRepairQueued)return;
+  wallRepairQueued=true;
+  requestAnimationFrame(()=>{wallRepairQueued=false;renderWallPreviews();});
+});
 wallObs.observe(document.body,{childList:true,subtree:true});
 
 /* ---------- PHOTOS: REAL LOCAL GALLERY, CAMERA ROLL, IMPORT, SEARCH, ALBUMS, FAVORITES, VIEWER ---------- */
@@ -33839,7 +33857,12 @@ function patchStore(root=document){root.querySelectorAll('button').forEach(btn=>
  },true);
  });}
 patchStore();
-new MutationObserver(()=>patchStore()).observe(document.body,{subtree:true,childList:true});
+let storePatchQueued=false;
+new MutationObserver(()=>{
+ if(storePatchQueued)return;
+ storePatchQueued=true;
+ requestAnimationFrame(()=>{storePatchQueued=false;patchStore();});
+}).observe(document.body,{subtree:true,childList:true});
 
 // Hard guard: uninstalled apps cannot be opened through the legacy global launcher.
 const oldOpen=window.openApp;
@@ -34027,48 +34050,7 @@ if(searchBox){
 }
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('#w10-v31-search'))hideSearch()},true);
 
-/* ---------- Blank desktop context menu ---------- */
-let blankMenu=$('w10-v31-desktop-context');
-if(!blankMenu){
-  blankMenu=document.createElement('div');
-  blankMenu.id='w10-v31-desktop-context';
-  blankMenu.innerHTML=
-    '<button data-a="refresh">↻ Refresh</button>'+
-    '<button data-a="folder">New folder</button>'+
-    '<button data-a="file">New text document</button>'+
-    '<button data-a="explorer">Open File Explorer</button>'+
-    '<button data-a="settings">Display settings</button>'+
-    '<button data-a="personal">Personalize</button>'+
-    '<button data-a="sort">Sort by name</button>';
-  document.body.appendChild(blankMenu);
-}
-function closeMenus(){
-  blankMenu.style.display='none';
-  document.querySelectorAll('#contextMenu,.contextMaster,#vctx,#w10-clean-context,#w10-v27-desktop-menu').forEach(x=>{x.style.display='none'});
-}
-desktop.addEventListener('contextmenu',e=>{
-  if(e.target.closest('.window,#taskbar,#startMenu,#startBtn,#searchBox,#w10-v28-desktop-menu,.w10-v28-desktop-item'))return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  closeMenus();
-  blankMenu.style.left=Math.min(e.clientX,innerWidth-235)+'px';
-  blankMenu.style.top=Math.min(e.clientY,innerHeight-300)+'px';
-  blankMenu.style.display='block';
-},true);
-blankMenu.addEventListener('click',e=>{
-  const a=e.target.closest('button')?.dataset.a;if(!a)return;
-  blankMenu.style.display='none';
-  if(a==='refresh'){window.__w10V28.renderDesktop();toast('Desktop refreshed')}
-  if(a==='folder'){const n=prompt('Folder name','New Folder');if(n){state.files.push({name:n,type:'folder'});save();toast('Folder created')}}
-  if(a==='file'){const n=prompt('File name','New Text Document.txt');if(n){state.files.push({name:n,type:'file',text:''});save();toast('Text document created')}}
-  if(a==='explorer')window.openApp?.('explorer');
-  if(a==='settings')window.openApp?.('settings');
-  if(a==='personal')window.openApp?.('personal');
-  if(a==='sort'){
-    state.files=(state.files||[]).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));save();toast('Files sorted by name');
-  }
-});
-document.addEventListener('pointerdown',e=>{if(!e.target.closest('#w10-v31-desktop-context'))blankMenu.style.display='none'},true);
+/* V31 legacy desktop context menu intentionally disabled: use #contextMenu below. */
 
 /* ---------- Final transparent PNG styling ---------- */
 const st=document.createElement('style');
@@ -34210,7 +34192,7 @@ function gateContext(e){
   const loginNow=!!login && !login.classList.contains('hidden') && getComputedStyle(login).display!=='none';
   if(lockNow||loginNow){
     e.preventDefault();e.stopImmediatePropagation();
-    qsa('#w10-clean-context,#contextMenu,.w10-v27-menu-pop,#w10-v27-desktop-menu,.contextMaster,#vctx').forEach(x=>{try{x.remove()}catch(err){try{x.style.display='none'}catch(_){}}});
+    qsa('#w10-clean-context,#contextMenu,.w10-v27-menu-pop,#w10-v27-desktop-menu,.contextMaster,#vctx').forEach(x=>{try{if(x.id==='contextMenu'){x.classList.add('hidden');x.style.display='none'}else{x.remove()}}catch(err){try{x.style.display='none'}catch(_){}}});
     return false;
   }
 }
@@ -34313,32 +34295,7 @@ function bind(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else setTimeout(bind,0);
 })();
-</script><script>
-(()=>{
-  const kill=e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();['#w10-clean-context','#contextMenu','.w10-v27-menu-pop','#w10-v27-desktop-menu','.contextMaster','#vctx'].forEach(sel=>document.querySelectorAll(sel).forEach(x=>{try{x.remove()}catch(_){x.style.display='none'}}));return false};
-  const bind=()=>{['lock','login'].forEach(id=>{const el=document.getElementById(id);if(!el)return;el.addEventListener('contextmenu',kill,true);el.oncontextmenu=kill;});};
-  bind();new MutationObserver(bind).observe(document.documentElement,{subtree:true,childList:true});
-})();
-</script>
-<script>
-(()=>{
-  const menus=['#w10-clean-context','#contextMenu','.w10-v27-menu-pop','#w10-v27-desktop-menu','.contextMaster','#vctx'];
-  const hidden=(el)=>{if(!el)return false;const cs=getComputedStyle(el);return el.classList.contains('hidden')||cs.display==='none'||cs.visibility==='hidden'||cs.opacity==='0'};
-  const sessionBlocked=()=>{
-    const lock=document.getElementById('lock'), login=document.getElementById('login');
-    return (lock && !hidden(lock)) || (login && !hidden(login));
-  };
-  const clear=()=>menus.forEach(sel=>document.querySelectorAll(sel).forEach(m=>{m.style.display='none';try{m.remove()}catch(e){}}));
-  const kill=(e)=>{if(!sessionBlocked())return; e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();clear();return false;};
-  window.addEventListener('contextmenu',kill,{capture:true});
-  document.addEventListener('contextmenu',kill,{capture:true});
-  const bind=()=>['lock','login'].forEach(id=>{const el=document.getElementById(id);if(el){el.oncontextmenu=kill;el.addEventListener('contextmenu',kill,{capture:true});}});
-  bind();
-  new MutationObserver(()=>{bind();if(sessionBlocked())clear();}).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style']});
-  setInterval(()=>{if(sessionBlocked())clear();},150);
-})();
-</script>
-<!-- FINAL FLAT-2D ICON OVERRIDE: authoritative visual layer -->
+</script><!-- FINAL FLAT-2D ICON OVERRIDE: authoritative visual layer -->
 <style id="w10-flat-2d-final">
 .w10-flat2d-icon{width:32px!important;height:32px!important;object-fit:contain!important;display:block!important;flex:0 0 auto!important}
 #icons .icon .w10-flat2d-icon{width:42px!important;height:42px!important;margin:0 auto 5px!important}
@@ -34495,7 +34452,7 @@ for(const el of [...host.children])if(!el.classList.contains('w10-v28-desktop-it
 render();
 try{const current=load();if(!getDeletedShortcuts().has('tiktok')&&!current.some(o=>o.id==='tiktok')){const n=current.length;addShortcut('tiktok',18+(n%4)*88,18+Math.floor(n/4)*86);}}catch(e){}
 // Reconcile periodically, but never during a drag; this prevents legacy timers from duplicating shortcuts.
-setInterval(()=>{if(!drag.el&&!rendering)reconcile()},700);
+setInterval(()=>{if(document.hidden)return;if(!drag.el&&!rendering)reconcile()},1400);
 window.addEventListener('resize',()=>{if(!drag.el)reconcile()});
 // Ensure every newly created window gets its canonical PNG in the titlebar.
 function patchWindow(w){if(!w||!w.matches?.('.window'))return;const id=canon(w.dataset.app||'');if(!src(id))return;const title=w.querySelector('.title')||w.querySelector('.windowTitle');if(!title)return;for(const ch of [...title.children]){if(ch.tagName==='IMG')ch.remove()}for(const n of [...title.childNodes])if(n.nodeType===3)n.nodeValue=n.nodeValue.replace(/[\u{1F000}-\u{1FAFF}\u{2300}-\u{23FF}\u{2600}-\u{27BF}]/gu,'');const im=document.createElement('img');im.className='w10-v36-window-icon';im.src=src(id);im.alt='';im.draggable=false;im.dataset.w10IconId=id;title.prepend(im)}
@@ -34529,7 +34486,12 @@ function patch(){
  }
 }
 patch();
-new MutationObserver(patch).observe(document.body,{subtree:true,childList:true});
+let patchQueued=false;
+new MutationObserver(()=>{
+ if(patchQueued)return;
+ patchQueued=true;
+ requestAnimationFrame(()=>{patchQueued=false;patch();});
+}).observe(document.body,{subtree:true,childList:true});
 [100,500,1200,2500,5000].forEach(ms=>setTimeout(patch,ms));
 })();
 </script>
@@ -34782,7 +34744,7 @@ document.addEventListener('click',e=>{
   var obs=new MutationObserver(tick);
   obs.observe(document.body,{subtree:true,attributes:true,attributeFilter:['style','class']});
   document.addEventListener('click',function(){setTimeout(tick,0);},true);
-  setInterval(tick,180);
+  setInterval(()=>{if(!document.hidden)tick()},400);
 })();
 </script>
 
@@ -35317,7 +35279,7 @@ function diagnostics(){const el=$('seDiag');if(!el)return;el.innerHTML='<div sty
 function history(extra){const el=$('seHistory');if(!el)return;let a=[];try{a=JSON.parse(get('history','[]'))||[]}catch(e){}if(extra){a.unshift(new Date().toLocaleString()+' — '+extra);a=a.slice(0,12);put('history',JSON.stringify(a))}el.innerHTML=a.length?a.map(x=>'<div>'+x+'</div>').join(''):'<div>No update events yet.</div>'}
 function watch(){document.querySelectorAll('.w10-settings-window').forEach(addPanel)}
 const oldOpen=window.openApp;if(typeof oldOpen==='function'&&!window.__w10SettingsExpansionOpen){window.__w10SettingsExpansionOpen=true;window.openApp=function(id){const w=oldOpen.apply(this,arguments);if(id==='settings')setTimeout(watch,40);return w}}
-watch();setInterval(watch,1500);
+watch();setInterval(()=>{if(!document.hidden)watch()},3000);
 window.w10SettingsExpansion={applyPrefs,watch};
 })();
 </script>
@@ -35625,7 +35587,7 @@ function refreshName(){let n='';try{n=localStorage.getItem('win10sim_username_v1
 const originalSet=window.__w10SetUsername;if(typeof originalSet==='function'&&!originalSet.__w10LiveWrapped){const wrapped=function(n){const out=originalSet.call(this,n);try{localStorage.setItem('win10sim_username',n)}catch(e){}refreshName();window.dispatchEvent(new Event('w10usernamechanged'));return out};wrapped.__w10LiveWrapped=true;window.__w10SetUsername=wrapped;}
 window.addEventListener('w10usernamechanged',refreshName);refreshName();
 let last='';function syncWall(){let w='';try{w=localStorage.getItem('win10sim_wallpaper_live_v1')||localStorage.getItem('win10_online_wall')||''}catch(e){}if(w&&w!==last){last=w;const d=document.getElementById('desktop');if(d){const css=/^(linear-gradient|radial-gradient|conic-gradient|url\()/i.test(w)?w:'url("'+w.replace(/"/g,'\\"')+'")';d.style.setProperty('background-image',css,'important');d.style.setProperty('background-size','cover','important');d.style.setProperty('background-position','center','important');d.style.setProperty('background-repeat','no-repeat','important');}}}
-setTimeout(syncWall,50);setInterval(()=>{syncWall();refreshName()},500);
+setTimeout(syncWall,50);setInterval(()=>{if(document.hidden)return;syncWall();refreshName()},1500);
 })();
 </script>
 
@@ -36169,7 +36131,7 @@ setTimeout(syncWall,50);setInterval(()=>{syncWall();refreshName()},500);
  }catch(e){}
 
  /* A short-lived safety scan covers Start rebuilds performed by delayed legacy code. */
- const timer=setInterval(scan,250);
+ const timer=setInterval(()=>{if(!document.hidden)scan()},750);
  window.addEventListener('beforeunload',()=>clearInterval(timer));
  window.addEventListener('resize',()=>{if(menu&&lastAnchor)place(lastAnchor);});
 
@@ -39886,7 +39848,6 @@ window.__512ApplySimSystem=apply;
   try{appDefs.tiktok=['TikTok','']}catch(e){}
   try{window.__canonicalAppRenderers=window.__canonicalAppRenderers||{};window.__canonicalAppRenderers.tiktok=tiktokApp}catch(e){console.error('TikTok renderer registration failed',e)}
   try{window.__w10V28?.buildStart?.()}catch(e){}
-  try{window.__w10V28?.addShortcut?.('tiktok',18+88*2,18)}catch(e){}
   try{window.__w10V28?.renderDesktop?.()}catch(e){}
   const realOpen=window.openApp;
   if(typeof realOpen==='function'&&!realOpen.__w10TikTokBridge){
@@ -39894,7 +39855,7 @@ window.__512ApplySimSystem=apply;
       const k=String(id||'').toLowerCase();
       if(k!=='tiktok')return realOpen.apply(this,arguments);
       const w=realOpen.call(this,'tiktok');
-      const mount=()=>{try{if(!w||!w.isConnected||typeof tiktokApp!=='function')return;const title=w.querySelector('.title');if(title){title.innerHTML='<img src="'+(window.__w10TikTokIcon||'')+'" alt="" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:7px">TikTok'}tiktokApp(w.querySelector('.content'))}catch(e){console.error('TikTok launcher error',e)}};
+      const mount=()=>{try{if(!w||!w.isConnected||typeof tiktokApp!=='function')return;tiktokApp(w.querySelector('.content'))}catch(e){console.error('TikTok launcher error',e)}};
       setTimeout(mount,0);setTimeout(mount,60);return w;
     };
     bridged.__w10TikTokBridge=true;bridged.__w10TikTokOriginal=realOpen;window.openApp=bridged;
@@ -40059,6 +40020,184 @@ body.w10-glass-off #w10-v28-desktop-menu{
 }
 body.w10-glass-off #w10-v28-desktop-menu::before{display:none !important}
 </style>
+
+
+<!-- 512: authoritative desktop context-menu Liquid Glass + reveal slider -->
+<style id="w10-authoritative-context-glass">
+/* Desktop right-click menu: match the shared 512 Liquid Glass surface exactly. */
+body:not(.w10-glass-off) #contextMenu:not(.hidden){
+  display:block!important;
+  position:fixed!important;
+  z-index:2147483647!important;
+  width:228px!important;
+  min-width:228px!important;
+  max-width:calc(100vw - 20px)!important;
+  box-sizing:border-box!important;
+  padding:5px!important;
+  background:rgba(255,255,255,var(--lg-shared-alpha,.12))!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  border-radius:12px!important;
+  box-shadow:0 16px 46px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.08)!important;
+  backdrop-filter:blur(22px) saturate(160%)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(160%)!important;
+  isolation:isolate!important;
+  overflow:visible!important;
+}
+body:not(.w10-glass-off) #contextMenu:not(.hidden)>div{
+  position:relative!important;
+  z-index:2!important;
+  margin:1px!important;
+  padding:8px 11px!important;
+  color:#fff!important;
+  border-radius:8px!important;
+  cursor:pointer!important;
+  isolation:isolate!important;
+  background:transparent!important;
+  transition:background .20s ease,box-shadow .20s ease!important;
+}
+body:not(.w10-glass-off) #contextMenu:not(.hidden)>div:hover{background:rgba(255,255,255,.075)!important}
+body:not(.w10-glass-off) #contextMenu:not(.hidden)>div:active{background:rgba(255,255,255,.11)!important}
+body:not(.w10-glass-off) #contextMenu:not(.hidden)>div::before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;opacity:0;
+  background:radial-gradient(circle 125px at var(--reveal-x,50%) var(--reveal-y,50%),
+    rgba(var(--reveal-color-rgb),.34) 0%,
+    rgba(var(--reveal-color-rgb),.17) 32%,
+    rgba(var(--reveal-color-rgb),.07) 58%,transparent 100%);
+  transition:opacity .20s ease;
+}
+body:not(.w10-glass-off) #contextMenu:not(.hidden)>div::after{
+  content:"";position:absolute;inset:-2px;z-index:0;pointer-events:none;border-radius:inherit;opacity:0;padding:2px;
+  background:radial-gradient(circle 155px at var(--reveal-x,50%) var(--reveal-y,50%),
+    rgba(var(--reveal-color-rgb),.78) 0%,
+    rgba(var(--reveal-color-rgb),.46) 25%,
+    rgba(var(--reveal-color-rgb),.24) 48%,
+    rgba(var(--reveal-color-rgb),.10) 70%,
+    rgba(var(--reveal-color-rgb),0) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;
+  filter:blur(.28px);
+  box-shadow:0 0 18px rgba(var(--reveal-color-rgb),.26);
+  transition:opacity .18s ease,filter .20s ease;
+}
+body:not(.w10-glass-off) #contextMenu:not(.hidden)>div.g-reveal::before,
+body:not(.w10-glass-off) #contextMenu:not(.hidden)>div.g-reveal::after{opacity:1}
+body:not(.w10-glass-off) #contextMenu:not(.hidden)::before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;opacity:0;
+  background:radial-gradient(circle 125px at var(--g-x,50%) var(--g-y,50%),
+    rgba(var(--reveal-color-rgb),.34) 0%,
+    rgba(var(--reveal-color-rgb),.17) 32%,
+    rgba(var(--reveal-color-rgb),.07) 58%,transparent 100%);
+  transition:opacity .18s ease;
+}
+body:not(.w10-glass-off) #contextMenu:not(.hidden)::after{
+  content:"";position:absolute;inset:-9px;z-index:0;pointer-events:none;border-radius:calc(12px + 9px);opacity:0;padding:9px;
+  background:radial-gradient(circle 155px at var(--g-x,50%) var(--g-y,50%),
+    rgba(var(--reveal-color-rgb),.78) 0%,
+    rgba(var(--reveal-color-rgb),.46) 25%,
+    rgba(var(--reveal-color-rgb),.24) 48%,
+    rgba(var(--reveal-color-rgb),.10) 70%,
+    rgba(var(--reveal-color-rgb),0) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;
+  filter:blur(.28px);
+  box-shadow:0 0 22px rgba(var(--reveal-color-rgb),.34);
+  transition:opacity .18s ease,filter .20s ease;
+}
+body:not(.w10-glass-off) #contextMenu:not(.hidden).g-reveal::before,
+body:not(.w10-glass-off) #contextMenu:not(.hidden).g-reveal::after{opacity:1}
+</style>
+<style id="w10-context-menu-no-icons">
+#contextMenu:not(.hidden)>div{padding-left:11px!important;}
+#contextMenu:not(.hidden)>div::first-letter{font-size:inherit!important;}
+</style>
+<script id="w10-authoritative-context-reveal-runtime">
+(()=>{
+  'use strict';
+  const menu=document.getElementById('contextMenu');
+  if(!menu||menu.dataset.w10AuthoritativeGlass==='1')return;
+  menu.dataset.w10AuthoritativeGlass='1';
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  let raf=0,inside=false,rect=null;
+  let tx=0,ty=0,cx=0,cy=0;
+  const smooth=0.12;
+  const paint=()=>{
+    raf=0;
+    if(!inside||!menu.isConnected)return;
+    rect=rect||menu.getBoundingClientRect();
+    if(!rect.width||!rect.height)return;
+    cx+=(tx-cx)*smooth;
+    cy+=(ty-cy)*smooth;
+    if(Math.abs(tx-cx)<.35)cx=tx;
+    if(Math.abs(ty-cy)<.35)cy=ty;
+    menu.style.setProperty('--g-x',clamp(((cx-rect.left)/rect.width)*100,0,100)+'%');
+    menu.style.setProperty('--g-y',clamp(((cy-rect.top)/rect.height)*100,0,100)+'%');
+    menu.classList.add('g-reveal');
+    menu.querySelectorAll(':scope>div').forEach(item=>{
+      const r=item.getBoundingClientRect();
+      if(!r.width||!r.height)return;
+      item.style.setProperty('--reveal-x',clamp(((cx-r.left)/r.width)*100,0,100)+'%');
+      item.style.setProperty('--reveal-y',clamp(((cy-r.top)/r.height)*100,0,100)+'%');
+      item.classList.add('g-reveal');
+    });
+    if((Math.abs(tx-cx)+Math.abs(ty-cy))>.6)raf=requestAnimationFrame(paint);
+  };
+  const schedule=()=>{if(!raf)raf=requestAnimationFrame(paint)};
+  menu.addEventListener('pointerenter',e=>{
+    inside=true;rect=menu.getBoundingClientRect();tx=cx=e.clientX;ty=cy=e.clientY;schedule();
+  },{passive:true});
+  menu.addEventListener('pointermove',e=>{tx=e.clientX;ty=e.clientY;schedule()},{passive:true});
+  menu.addEventListener('pointerdown',e=>{tx=e.clientX;ty=e.clientY;schedule()},{passive:true});
+  menu.addEventListener('pointerleave',()=>{
+    inside=false;rect=null;
+    if(raf){cancelAnimationFrame(raf);raf=0;}
+    menu.classList.remove('g-reveal');
+    menu.querySelectorAll(':scope>div').forEach(item=>item.classList.remove('g-reveal'));
+  },{passive:true});
+  window.addEventListener('resize',()=>{rect=null},{passive:true});
+})();
+</script>
+
+<!-- 512: authoritative desktop context-menu survival repair -->
+<script id="w10-context-menu-survival-repair">
+(()=>{
+  'use strict';
+  const menu=()=>document.getElementById('contextMenu');
+  const isHidden=e=>!e||e.classList.contains('hidden')||getComputedStyle(e).display==='none'||getComputedStyle(e).visibility==='hidden';
+  const sync=()=>{
+    const m=menu();
+    if(!m)return;
+    const lock=document.getElementById('lock'),login=document.getElementById('login');
+    if(isHidden(lock)&&isHidden(login)){
+      if(!m.classList.contains('hidden'))return;
+      m.style.display='none';
+    }
+  };
+  sync();
+  new MutationObserver(sync).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style']});
+})();
+</script>
+
+<!-- 512: low-end Chromebook background maintenance -->
+<script id="w10-low-end-background-optimizer-v2">
+(()=>{
+  'use strict';
+  try{performance.setResourceTimingBufferSize?.(160)}catch(e){}
+  let last=performance.now();
+  const idle=window.requestIdleCallback||((fn)=>setTimeout(()=>fn({didTimeout:true,timeRemaining:()=>0}),250));
+  function maintenance(){
+    if(document.hidden)return;
+    idle(()=>{
+      const now=performance.now();
+      if(now-last<20000)return;
+      last=now;
+      try{performance.clearResourceTimings?.()}catch(e){}
+    },{timeout:2500});
+  }
+  setInterval(maintenance,5000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)maintenance()},{passive:true});
+})();
+</script>
 </body>
 
 <style id="w10-tiktok-premium-final-overhaul">
@@ -41885,7 +42024,7 @@ let obsScheduled=false;const obs=new MutationObserver(()=>{if(obsScheduled)retur
 window.addEventListener('w10-profile-photo-changed',apply);
 window.addEventListener('w10usernamechanged',()=>{apply();const n=(localStorage.getItem('win10sim_username_v1')||localStorage.getItem('win10sim_username')||'').trim();if(n)document.querySelectorAll('.tmUserMain b').forEach(el=>el.textContent=n)});
 setTimeout(apply,0);setTimeout(apply,200);setTimeout(apply,700);
-setInterval(()=>{apply();const n=(localStorage.getItem('win10sim_username_v1')||localStorage.getItem('win10sim_username')||'').trim();if(n)document.querySelectorAll('.tmUserMain b').forEach(el=>el.textContent=n)},1200);
+setInterval(()=>{if(document.hidden)return;apply();const n=(localStorage.getItem('win10sim_username_v1')||localStorage.getItem('win10sim_username')||'').trim();if(n)document.querySelectorAll('.tmUserMain b').forEach(el=>el.textContent=n)},2500);
 })();
 </script>
 
@@ -42476,288 +42615,7 @@ html.w10-page-hidden *{
 </script>
 
 
-<!-- 512 GENERAL MULTI-APP PERFORMANCE FIX
-     Rendering/lifecycle optimization only. Existing visuals and app UI are untouched. -->
-<style id="512-general-multi-app-optimization-css">
-/* A fully covered app does not need to paint. Visibility preserves its geometry,
-   DOM state, controls, and layout so it comes back instantly when uncovered. */
-#windows > .window.w10-fully-occluded,
-#windows > .window.w10-fully-occluded *{
-  visibility:hidden!important;
-}
-#windows > .window.w10-fully-occluded{
-  pointer-events:none!important;
-}
-/* Covered app-local animations do not need to consume compositor work. */
-#windows > .window.w10-fully-occluded *,
-#windows > .window.w10-fully-occluded *::before,
-#windows > .window.w10-fully-occluded *::after{
-  animation-play-state:paused!important;
-}
-</style>
-<script id="512-general-multi-app-optimization-runtime">
-(()=>{
-  'use strict';
-  if(window.__512GeneralMultiAppOptimization)return;
-  window.__512GeneralMultiAppOptimization=true;
-
-  const host=document.getElementById('windows');
-  if(!host)return;
-
-  /* ---------- Per-app runtime ownership ----------
-     Intervals/RAFs/timeouts created while an app is running are attached to its
-     window. When that window closes, those background jobs are actually released. */
-  const appData=new WeakMap();
-  const dataFor=w=>{
-    let d=appData.get(w);
-    if(!d){
-      d={timeouts:new Set(),intervals:new Set(),rafs:new Set()};
-      appData.set(w,d);
-    }
-    return d;
-  };
-  let activeAppContext=null;
-
-  const nativeSetTimeout=window.setTimeout.bind(window);
-  const nativeClearTimeout=window.clearTimeout.bind(window);
-  const nativeSetInterval=window.setInterval.bind(window);
-  const nativeClearInterval=window.clearInterval.bind(window);
-  const nativeRAF=window.requestAnimationFrame.bind(window);
-  const nativeCancelRAF=window.cancelAnimationFrame.bind(window);
-
-  const timerOwner=new Map();
-  const rafOwner=new Map();
-
-  window.setTimeout=function(fn,delay,...args){
-    const owner=activeAppContext;
-    let id;
-    if(!owner||typeof fn!=='function')return nativeSetTimeout(fn,delay,...args);
-    const wrapped=function(...cbArgs){
-      const rec=timerOwner.get(id);
-      if(rec){timerOwner.delete(id);dataFor(owner).timeouts.delete(id)}
-      const prev=activeAppContext;activeAppContext=owner;
-      try{return fn.apply(this,cbArgs)}finally{activeAppContext=prev}
-    };
-    id=nativeSetTimeout(wrapped,delay,...args);
-    timerOwner.set(id,{owner,kind:'timeout'});
-    dataFor(owner).timeouts.add(id);
-    return id;
-  };
-
-  window.clearTimeout=function(id){
-    const rec=timerOwner.get(id);
-    if(rec){dataFor(rec.owner).timeouts.delete(id);timerOwner.delete(id)}
-    return nativeClearTimeout(id);
-  };
-
-  window.setInterval=function(fn,delay,...args){
-    const owner=activeAppContext;
-    if(!owner||typeof fn!=='function')return nativeSetInterval(fn,delay,...args);
-    const wrapped=function(...cbArgs){
-      const prev=activeAppContext;activeAppContext=owner;
-      try{return fn.apply(this,cbArgs)}finally{activeAppContext=prev}
-    };
-    const id=nativeSetInterval(wrapped,delay,...args);
-    timerOwner.set(id,{owner,kind:'interval'});
-    dataFor(owner).intervals.add(id);
-    return id;
-  };
-
-  window.clearInterval=function(id){
-    const rec=timerOwner.get(id);
-    if(rec){dataFor(rec.owner).intervals.delete(id);timerOwner.delete(id)}
-    return nativeClearInterval(id);
-  };
-
-  window.requestAnimationFrame=function(fn){
-    const owner=activeAppContext;
-    if(!owner||typeof fn!=='function')return nativeRAF(fn);
-    let id;
-    const wrapped=function(ts){
-      const rec=rafOwner.get(id);
-      if(rec){rafOwner.delete(id);dataFor(owner).rafs.delete(id)}
-      const prev=activeAppContext;activeAppContext=owner;
-      try{return fn(ts)}finally{activeAppContext=prev}
-    };
-    id=nativeRAF(wrapped);
-    rafOwner.set(id,owner);
-    dataFor(owner).rafs.add(id);
-    return id;
-  };
-
-  window.cancelAnimationFrame=function(id){
-    const owner=rafOwner.get(id);
-    if(owner){dataFor(owner).rafs.delete(id);rafOwner.delete(id)}
-    return nativeCancelRAF(id);
-  };
-
-  const cleanupAppRuntime=w=>{
-    if(!w)return;
-    const d=appData.get(w);
-    if(!d)return;
-    for(const id of d.timeouts){timerOwner.delete(id);nativeClearTimeout(id)}
-    for(const id of d.intervals){timerOwner.delete(id);nativeClearInterval(id)}
-    for(const id of d.rafs){rafOwner.delete(id);nativeCancelRAF(id)}
-    d.timeouts.clear();d.intervals.clear();d.rafs.clear();
-  };
-
-  /* Associate timers started by normal app UI events with the window that owns
-     the event. This catches games/clock-like controls without changing input. */
-  const markContext=e=>{
-    const w=e.target?.closest?.('.window');
-    if(!w)return;
-    activeAppContext=w;
-    nativeSetTimeout(()=>{if(activeAppContext===w)activeAppContext=null},0);
-  };
-  ['click','pointerdown','pointerup','keydown','keyup','input','change','submit'].forEach(type=>
-    document.addEventListener(type,markContext,true)
-  );
-
-  /* ---------- Exact window occlusion ---------- */
-  let scheduled=0;
-  let dragging=false;
-
-  const zOf=(w,index)=>{
-    const z=Number.parseFloat(getComputedStyle(w).zIndex);
-    if(Number.isFinite(z))return [z,index];
-    const dz=Number.parseFloat(w.dataset.z);
-    return [Number.isFinite(dz)?dz:100,index];
-  };
-
-  const rectOf=w=>{
-    const r=w.getBoundingClientRect();
-    return {left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height};
-  };
-
-  /* Returns true only when the union of higher windows fully covers the target. */
-  const fullyCovered=(target,aboveRects)=>{
-    if(!aboveRects.length||target.width<=0||target.height<=0)return false;
-    const xs=[target.left,target.right];
-    const clipped=[];
-    for(const r of aboveRects){
-      const l=Math.max(target.left,r.left), rr=Math.min(target.right,r.right);
-      const t=Math.max(target.top,r.top), b=Math.min(target.bottom,r.bottom);
-      if(rr<=l||b<=t)continue;
-      clipped.push({left:l,right:rr,top:t,bottom:b});
-      xs.push(l,rr);
-    }
-    if(!clipped.length)return false;
-    xs.sort((a,b)=>a-b);
-    const uniq=[];
-    for(const x of xs){if(!uniq.length||Math.abs(x-uniq[uniq.length-1])>0.01)uniq.push(x)}
-    for(let i=0;i<uniq.length-1;i++){
-      const x1=uniq[i],x2=uniq[i+1];
-      if(x2-x1<0.01)continue;
-      const mid=(x1+x2)/2;
-      const ys=[];
-      for(const r of clipped)if(r.left<mid&&r.right>mid)ys.push([r.top,r.bottom]);
-      if(!ys.length)return false;
-      ys.sort((a,b)=>a[0]-b[0]);
-      let covered=target.top;
-      for(const [top,bottom] of ys){
-        if(top>covered+0.5)return false;
-        if(bottom>covered)covered=bottom;
-        if(covered>=target.bottom-0.5)break;
-      }
-      if(covered<target.bottom-0.5)return false;
-    }
-    return true;
-  };
-
-  const recompute=()=>{
-    scheduled=0;
-    if(dragging)return;
-    const windows=[...host.children].filter(w=>w.matches?.('.window')&&!w.classList.contains('hidden'));
-    if(windows.length<2){
-      for(const w of windows)w.classList.remove('w10-fully-occluded');
-      return;
-    }
-    const ordered=windows.map((w,i)=>({w,i,z:zOf(w,i),rect:rectOf(w)})).sort((a,b)=>a.z[0]-b.z[0]||a.z[1]-b.z[1]);
-    const seen=[];
-    for(let i=ordered.length-1;i>=0;i--){
-      const cur=ordered[i];
-      const higher=seen.map(x=>x.rect);
-      const hidden=fullyCovered(cur.rect,higher);
-      cur.w.classList.toggle('w10-fully-occluded',hidden);
-      seen.push(cur);
-    }
-    /* Hidden windows are deliberately excluded from pointer interaction only;
-       all taskbar/window state remains intact. */
-  };
-
-  const schedule=()=>{
-    if(scheduled||dragging)return;
-    scheduled=nativeRAF(recompute);
-  };
-
-  const releaseAllOcclusion=()=>{
-    host.querySelectorAll('.w10-fully-occluded').forEach(w=>w.classList.remove('w10-fully-occluded'));
-  };
-
-  /* Capture timers created during the simulator's actual app renderer. */
-  const realRenderApp=window.renderApp;
-  if(typeof realRenderApp==='function'&&!realRenderApp.__512MultiAppContextWrap){
-    const renderWrapped=function(type,content,...rest){
-      const owner=content?.closest?.('.window')||null;
-      const prev=activeAppContext;
-      activeAppContext=owner;
-      try{return realRenderApp.call(this,type,content,...rest)}finally{activeAppContext=prev}
-    };
-    renderWrapped.__512MultiAppContextWrap=true;
-    renderWrapped.__512MultiAppContextOriginal=realRenderApp;
-    window.renderApp=renderWrapped;
-  }
-
-  /* Keep occlusion in sync with the simulator's existing lifecycle functions. */
-  for(const name of ['openApp','closeWindow','minWin','maxWin','focusWin']){
-    const old=window[name];
-    if(typeof old!=='function')continue;
-    if(old.__512MultiAppLifecycleWrap)continue;
-    const wrapped=function(...args){
-      const result=old.apply(this,args);
-      if(name==='closeWindow'&&args[0])cleanupAppRuntime(args[0]);
-      schedule();
-      return result;
-    };
-    wrapped.__512MultiAppLifecycleWrap=true;
-    wrapped.__512MultiAppOriginal=old;
-    window[name]=wrapped;
-  }
-
-  /* Detect the existing titlebar drag gesture without taking over the drag. */
-  document.addEventListener('pointerdown',e=>{
-    if(e.target?.closest?.('.window .titlebar')&&!e.target?.closest?.('.controls button')){
-      dragging=true;
-      releaseAllOcclusion();
-    }
-  },true);
-  const endDrag=()=>{if(!dragging)return;dragging=false;schedule()};
-  document.addEventListener('pointerup',endDrag,true);
-  document.addEventListener('pointercancel',endDrag,true);
-
-  window.addEventListener('resize',schedule,{passive:true});
-
-  /* Opening/removing app DOM is the only mutation we care about here. */
-  try{
-    const mo=new MutationObserver(list=>{
-      for(const m of list){
-        if(m.target!==host)continue;
-        if(m.type==='childList'){
-          for(const n of m.removedNodes){
-            if(n.nodeType===1&&n.classList?.contains('window'))cleanupAppRuntime(n);
-          }
-          schedule();
-        }
-      }
-    });
-    mo.observe(host,{childList:true});
-  }catch(_){ }
-
-  /* Flush once after startup so an already-populated session is optimized too. */
-  schedule();
-})();
-</script>
-
+<!-- 512 GENERAL MULTI-APP PERFORMANCE FIX: removed global timer/RAF interception to keep 512 responsive on low-RAM Chromebooks. Existing app logic and visuals are unchanged. -->
 <style id="512-taskbar-autohide-corrected">
 /* 512 — ONLY the existing liquid-glass taskbar hides. Windowed apps are never changed. */
 #taskbar{
@@ -42935,3 +42793,185 @@ window.addEventListener('beforeunload',clearTimer,{once:true});
 setTimeout(sync,0);
 })();
 </script>
+
+
+<!-- V9: make desktop context menu use the same shared Liquid Glass material recipe -->
+<style id="w10-context-menu-shared-material-v9">
+body:not(.w10-glass-off) #contextMenu:not(.hidden){
+  background:rgba(18,26,35,calc(var(--lg-shared-alpha,.18)*.72))!important;
+  background-image:linear-gradient(135deg,
+    rgba(255,255,255,.050),
+    rgba(255,255,255,.010) 52%,
+    rgba(0,0,0,.020))!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  border-radius:10px!important;
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.11),
+    inset 0 -1px 0 rgba(0,0,0,.07)!important;
+  backdrop-filter:blur(var(--lg-shared-blur)) saturate(112%) brightness(1.03)!important;
+  -webkit-backdrop-filter:blur(var(--lg-shared-blur)) saturate(112%) brightness(1.03)!important;
+  overflow:hidden!important;
+}
+body:not(.w10-glass-off) #contextMenu:not(.hidden)::before{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  border-radius:inherit!important;
+  opacity:1!important;
+  background:
+    linear-gradient(135deg,
+      rgba(255,255,255,.075) 0%,
+      rgba(255,255,255,.018) 34%,
+      rgba(255,255,255,0) 62%,
+      rgba(255,255,255,.040) 100%)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06)!important;
+}
+body:not(.w10-glass-off) #contextMenu:not(.hidden)::after{
+  content:""!important;
+  position:absolute!important;
+  inset:1px!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  border-radius:9px!important;
+  opacity:1!important;
+  background:radial-gradient(circle 180px at var(--g-x,50%) var(--g-y,50%),
+    rgba(255,255,255,.045),
+    rgba(255,255,255,.015) 42%,
+    rgba(255,255,255,0) 72%)!important;
+  mix-blend-mode:screen!important;
+}
+body:not(.w10-glass-off) #contextMenu:not(.hidden)>div{
+  z-index:2!important;
+  background:transparent!important;
+}
+body:not(.w10-glass-off) #contextMenu:not(.hidden)>div:hover{
+  background:rgba(255,255,255,calc(var(--lg-shared-light)*1.35))!important;
+}
+body:not(.w10-glass-off) #contextMenu:not(.hidden)>div:active{
+  background:rgba(255,255,255,calc(var(--lg-shared-light)*1.70))!important;
+}
+body.w10-glass-off #contextMenu:not(.hidden){
+  background:#202020!important;
+  background-image:none!important;
+  border-color:#555!important;
+  box-shadow:0 8px 28px #0008!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+body.w10-glass-off #contextMenu:not(.hidden)::before,
+body.w10-glass-off #contextMenu:not(.hidden)::after{display:none!important}
+</style>
+
+
+<!-- V10: desktop shortcut deletion persistence only -->
+<script id="w10-v10-shortcut-delete-persistence">
+(()=>{
+'use strict';
+const KEY='w10-v28-desktop-shortcuts';
+const LEGACY_KEYS=['w10-v27-desktop-shortcuts','w10-v25-desktop-shortcuts'];
+const DELETED='w10-v28-deleted-shortcuts';
+const canon=id=>{
+  const a={browser:'edge',groove:'music',taskmgr:'task',recycle:'recycle',personalization:'personal',alarm:'alarm',alarms:'alarm',snipping:'snip',minesweeper:'mines',tictactoe:'ttt','2048':'game2048'};
+  return a[String(id||'').toLowerCase()]||String(id||'').toLowerCase();
+};
+const deletedSet=()=>{
+  try{
+    const x=JSON.parse(localStorage.getItem(DELETED)||'[]');
+    return new Set(Array.isArray(x)?x.map(canon):[]);
+  }catch(_){return new Set()}
+};
+const markDeleted=id=>{
+  const k=canon(id); if(!k)return;
+  try{
+    const a=[...deletedSet()];
+    if(!a.includes(k))a.push(k);
+    localStorage.setItem(DELETED,JSON.stringify(a));
+  }catch(_){ }
+};
+const scrubKey=(key,set)=>{
+  try{
+    const raw=JSON.parse(localStorage.getItem(key)||'null');
+    if(!raw||!Array.isArray(raw.items))return;
+    const next=raw.items.filter(o=>!set.has(canon(o?.id)));
+    if(next.length!==raw.items.length){
+      raw.items=next;
+      localStorage.setItem(key,JSON.stringify(raw));
+    }
+  }catch(_){ }
+};
+const scrubAll=()=>{
+  const set=deletedSet();
+  scrubKey(KEY,set);
+  for(const k of LEGACY_KEYS)scrubKey(k,set);
+  return set;
+};
+const removeLiveDom=id=>{
+  const k=canon(id);
+  document.querySelectorAll('#icons .w10-v28-desktop-item[data-app]').forEach(el=>{
+    if(canon(el.dataset.app)===k)el.remove();
+  });
+};
+const repair=()=>{
+  const set=scrubAll();
+  if(!set.size)return;
+  document.querySelectorAll('#icons .w10-v28-desktop-item[data-app]').forEach(el=>{
+    if(set.has(canon(el.dataset.app)))el.remove();
+  });
+};
+
+const api=window.__w10V28;
+if(api&&typeof api.deleteShortcut==='function'&&!api.deleteShortcut.__w10V10){
+  const originalDelete=api.deleteShortcut;
+  const wrappedDelete=function(id){
+    const k=canon(id);
+    markDeleted(k);
+    const r=originalDelete.apply(this,arguments);
+    // Keep every desktop-shortcut store in agreement so refresh cannot resurrect it.
+    scrubAll();
+    removeLiveDom(k);
+    return r;
+  };
+  wrappedDelete.__w10V10=true;
+  wrappedDelete.__w10V10Original=originalDelete;
+  api.deleteShortcut=wrappedDelete;
+}
+
+if(api&&typeof api.renderDesktop==='function'&&!api.renderDesktop.__w10V10){
+  const originalRender=api.renderDesktop;
+  const wrappedRender=function(){
+    scrubAll();
+    const r=originalRender.apply(this,arguments);
+    repair();
+    return r;
+  };
+  wrappedRender.__w10V10=true;
+  wrappedRender.__w10V10Original=originalRender;
+  api.renderDesktop=wrappedRender;
+}
+
+// The original shortcut-menu click handler closes over its local deleteShortcut().
+// Catch only the Delete action in the capture phase so the persistent wrapper above
+// is always used, without touching any other shortcut-menu action.
+const shortcutMenu=document.getElementById('w10-v28-desktop-menu');
+if(shortcutMenu&&!shortcutMenu.__w10V10DeleteCapture){
+  shortcutMenu.__w10V10DeleteCapture=true;
+  shortcutMenu.addEventListener('click',e=>{
+    const b=e.target.closest?.('[data-a="delete"]');
+    if(!b)return;
+    const id=shortcutMenu.dataset.id;
+    if(!id)return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    shortcutMenu.style.display='none';
+    if(typeof window.__w10V28?.deleteShortcut==='function')window.__w10V28.deleteShortcut(id);
+  },true);
+}
+
+// Clean up any already-stale legacy records once, without changing anything else.
+repair();
+})();
+</script>
+
