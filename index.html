@@ -30823,8 +30823,8 @@ function patchStartButton(){
 }
 
 function finalInit(){
- rebuildStart();
- syncDesktop();
+ window.__w10V28?.buildStart?.();
+ window.__w10V28?.renderDesktop?.();
 patchStartButton();
  keyboard();
  taskWatch();
@@ -33777,7 +33777,7 @@ let items=[];
 const deletedShortcuts=getDeletedShortcuts();
 try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(Array.isArray(x?.items))items=x.items.filter(o=>!deletedShortcuts.has(canon(o?.id)))}catch(e){}
 if(!items.length){try{const x=JSON.parse(localStorage.getItem('w10-v27-desktop-shortcuts')||localStorage.getItem('w10-v25-desktop-shortcuts')||'null');if(Array.isArray(x?.items))items=x.items.filter(o=>!deletedShortcuts.has(canon(o?.id)))}catch(e){}}
-if(!items.length)items=defaults.filter(id=>!deletedShortcuts.has(canon(id))).map((id,i)=>({id,x:18+(i%2)*92,y:18+Math.floor(i/2)*92}));
+if(!items.length){const defaults=['settings','task','notepad','photos'];items=defaults.filter(id=>!deletedShortcuts.has(canon(id))&&installed(id)).map((id,i)=>({id,x:18+(i%2)*92,y:18+Math.floor(i/2)*92}));}
 function cleanItems(){const seen=new Set(),u=uninstalled();items=items.map(o=>({id:canon(o.id),x:Number(o.x)||0,y:Number(o.y)||0})).filter(o=>src(o.id)&&installed(o.id)&&!seen.has(o.id)&&seen.add(o.id));}
 function saveItems(){cleanItems();try{localStorage.setItem(KEY,JSON.stringify({items}))}catch(e){}}
 function clamp(n,min,max){return Math.max(min,Math.min(max,n))}
@@ -34416,7 +34416,7 @@ function load(){
  if(!raw.length){try{const x=JSON.parse(localStorage.getItem('w10-v27-desktop-shortcuts')||localStorage.getItem('w10-v25-desktop-shortcuts')||'null');if(Array.isArray(x?.items))raw=x.items.filter(o=>!deletedShortcuts.has(canon(o?.id)))}catch(e){}}
  const seen=new Set(),out=[];
  for(const o of raw){const id=canon(o?.id);if(!id||!src(id)||!installed(id)||seen.has(id))continue;seen.add(id);out.push({id,x:Number(o?.x),y:Number(o?.y)})}
- if(!out.length)out.push(...DEFAULTS.filter(id=>!deletedShortcuts.has(canon(id))&&installed(id)).map((id,i)=>({id,x:18+(i%4)*88,y:18+Math.floor(i/4)*86})));
+ if(!out.length){const DEFAULTS=['settings','task','notepad','photos'];out.push(...DEFAULTS.filter(id=>!deletedShortcuts.has(canon(id))&&installed(id)).map((id,i)=>({id,x:18+(i%4)*88,y:18+Math.floor(i/4)*86})));}
  out.forEach(o=>{if(!Number.isFinite(o.x))o.x=18;if(!Number.isFinite(o.y))o.y=18});
  // Repair the old “everything in one pile” state once, but never overwrite deliberate placements.
  if(out.length>1){const xs=out.map(o=>o.x),ys=out.map(o=>o.y);const rangeX=Math.max(...xs)-Math.min(...xs),rangeY=Math.max(...ys)-Math.min(...ys);if(rangeX<30&&rangeY<30){const cols=Math.min(4,Math.max(1,Math.ceil(Math.sqrt(out.length))));out.forEach((o,i)=>{o.x=18+(i%cols)*88;o.y=18+Math.floor(i/cols)*86});}}
