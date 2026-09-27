@@ -9370,6 +9370,10 @@ if(!window.__w10AccurateTelemetry){
     }
     let nextLag=performance.now()+250;
     function lagLoop(){
+      if(window.__w10BackgroundThrottle){
+        setTimeout(lagLoop,1200);
+        return;
+      }
       const now=performance.now();
       sampleLag(now);
       nextLag+=250;
@@ -9588,6 +9592,10 @@ if(!window.__w10AccurateTelemetry){
       }catch(e){return false;}
     }
     function telemetryLoop(){
+      if(window.__w10BackgroundThrottle){
+        telemetryTimer=setTimeout(telemetryLoop,3000);
+        return;
+      }
       try{update()}catch(e){}
       telemetryTimer=setTimeout(telemetryLoop,telemetryConsumerOpen()?500:1800);
     }
@@ -37078,13 +37086,14 @@ body.w10-ult-noanim .w10u-toggle::before,body.w10-ult-noanim .w10u-toggle::after
     const lowEnd=/CrOS/i.test(ua) && ((mem&&mem<=4)||(cores&&cores<=4));
     const clocks=new Map();
     window.__w10RevealFrameGate={allow(key,x,y){
+      if(window.__w10BackgroundThrottle)return false;
       if(!lowEnd)return true;
       const now=performance.now();
       let s=clocks.get(key);
       if(!s){clocks.set(key,{t:now,x,y});return true;}
       const dx=x-s.x,dy=y-s.y;
       const fast=(dx*dx+dy*dy)>1600;
-      const minGap=fast?28:14;
+      const minGap=fast?24:18;
       if(now-s.t<minGap)return false;
       s.t=now;s.x=x;s.y=y;
       return true;
@@ -37098,9 +37107,19 @@ body.w10-ult-noanim .w10u-toggle::before,body.w10-ult-noanim .w10u-toggle::after
   const root=document.documentElement, body=document.body;
   const sel='.w10u-home-card,.w10u-app,.w10u-btn,.w10u-nav nav button,.w10u-toggle,.w10u-row,.w10u-status,.w10u-account,.w10u-pin,.w10u-note,.w10u-update,.w10u-inline,.w10u-range,.w10-glass-range';
   let targetCache=[];
-  const refreshTargets=()=>{targetCache=Array.from(document.querySelectorAll(sel));};
-  let touched=[],raf=0,lastX=0,lastY=0;
+  const refreshTargets=()=>{
+    targetCache=Array.from(document.querySelectorAll(sel));
+    if(typeof refreshScopedTargets==='function')refreshScopedTargets();
+  };
+  let touched=[],raf=0,lastX=0,lastY=0,scopedTargets=[],scopedWindow=null;
+  const refreshScopedTargets=()=>{
+    scopedTargets=scopedWindow
+      ? targetCache.filter(el=>el.closest('.window:not(.hidden)')===scopedWindow)
+      : targetCache.filter(el=>!el.closest('.window:not(.hidden)'));
+  };
   refreshTargets();
+  scopedWindow=null;
+  refreshScopedTargets();
   let geomCache=new WeakMap();
   const rectOf=el=>{if(!el||!el.isConnected)return null;let r=geomCache.get(el);if(!r){const q=el.getBoundingClientRect();r={left:q.left,right:q.right,top:q.top,bottom:q.bottom,width:q.width,height:q.height};geomCache.set(el,r);}return r;};
   const invalidate=()=>{geomCache=new WeakMap();};
@@ -37136,9 +37155,10 @@ body.w10-ult-noanim .w10u-toggle::before,body.w10-ult-noanim .w10u-toggle::after
   }
   function renderAll(x,y){
     raf=0;
+    if(window.__w10BackgroundThrottle)return;
     const zone=110;
     const keep=[];
-    for(const el of targetCache){
+    for(const el of scopedTargets){
       const r=rectOf(el);
       if(!r)continue;
       const expanded={left:r.left-zone,right:r.right+zone,top:r.top-zone,bottom:r.bottom+zone};
@@ -37151,17 +37171,31 @@ body.w10-ult-noanim .w10u-toggle::before,body.w10-ult-noanim .w10u-toggle::after
     touched=keep;
   }
   document.addEventListener('pointermove',e=>{
-    if(window.__w10RevealDragActive)return;
+    if(window.__w10BackgroundThrottle||window.__w10RevealDragActive)return;
     if(body.classList.contains('w10-noanim')||body.classList.contains('w10-ult-noanim'))return;
+    const nextWindow=e.target instanceof Element ? e.target.closest('.window:not(.hidden)') : null;
+    if(nextWindow!==scopedWindow){
+      scopedWindow=nextWindow;
+      refreshScopedTargets();
+    }
     if(!window.__w10RevealFrameGate?.allow('v88',e.clientX,e.clientY))return;
     lastX=e.clientX; lastY=e.clientY;
     if(!raf)raf=requestAnimationFrame(()=>renderAll(lastX,lastY));
   },{passive:true});
-  const targetObserver=new MutationObserver(()=>refreshTargets());
+  let targetRefreshTimer=0;
+  const scheduleTargetRefresh=()=>{
+    if(targetRefreshTimer)return;
+    targetRefreshTimer=setTimeout(()=>{
+      targetRefreshTimer=0;
+      refreshTargets();
+    },120);
+  };
+  const targetObserver=new MutationObserver(scheduleTargetRefresh);
   targetObserver.observe(body,{childList:true,subtree:true});
   document.addEventListener('pointerleave',()=>{touched.forEach(clear);touched=[]},{passive:true});
   document.addEventListener('pointerdown',e=>{
     const t=pick(e.target);
+    if(window.__w10BackgroundThrottle)return;
     if(t&&!body.classList.contains('w10-noanim')&&!body.classList.contains('w10-ult-noanim')){
       t.animate([{filter:'brightness(1)'},{filter:'brightness(1.12)'},{filter:'brightness(1)'}],{duration:170,easing:'ease-out'}).catch(()=>{});
     }
@@ -37475,9 +37509,16 @@ body.w10-ult-noanim .fluent-box::before,body.w10-ult-noanim .fluent-box::after{t
   let raf=0,lastX=0,lastY=0,active=new Set();
   let hoverWindow=null;
   let fluentTargetCache=[];
+  let fluentScopedTargets=[];
   const fluentGeomCache=new WeakMap();
   let fluentGeomDirty=true;
-  const refreshFluentTargets=()=>{fluentTargetCache=Array.from(document.querySelectorAll(selector)).filter(el=>!el.closest(settingsRootSel)&&!el.closest('.window.hidden'));fluentGeomDirty=true;};
+  const refreshFluentTargets=()=>{
+    fluentTargetCache=Array.from(document.querySelectorAll(selector)).filter(el=>!el.closest(settingsRootSel)&&!el.closest('.window.hidden'));
+    fluentScopedTargets=hoverWindow
+      ? fluentTargetCache.filter(el=>el.closest('.window:not(.hidden)')===hoverWindow)
+      : fluentTargetCache.filter(el=>!el.closest('.window:not(.hidden)'));
+    fluentGeomDirty=true;
+  };
   const invalidateFluentGeometry=()=>{fluentGeomDirty=true;};
   window.__w10RevealInvalidate=invalidateFluentGeometry;
   const getFluentRect=el=>{
@@ -37553,7 +37594,7 @@ body.w10-ult-noanim .fluent-box::before,body.w10-ult-noanim .fluent-box::after{t
     if(body.classList.contains('w10-noanim')||body.classList.contains('w10-ult-noanim')||window.__w10RevealDragActive)return;
     const scopeWindow=hoverWindow;
     const next=new Set();
-    fluentTargetCache.forEach(el=>{
+    fluentScopedTargets.forEach(el=>{
       const elWindow=el.closest('.window:not(.hidden)');
       if(scopeWindow ? elWindow!==scopeWindow : elWindow) { if(el.classList.contains('v86-rv'))clear(el); return; }
       if(el.matches('.w10-clean-tile,.w10u-home-card,.w10u-app'))return;
@@ -37570,8 +37611,15 @@ body.w10-ult-noanim .fluent-box::before,body.w10-ult-noanim .fluent-box::after{t
     fluentGeomDirty=false;
   }
   const onMove=e=>{
-    if(window.__w10RevealDragActive)return;
-    hoverWindow=e.target instanceof Element ? e.target.closest('.window:not(.hidden)') : null;
+    if(window.__w10BackgroundThrottle||window.__w10RevealDragActive)return;
+    const nextWindow=e.target instanceof Element ? e.target.closest('.window:not(.hidden)') : null;
+    if(nextWindow!==hoverWindow){
+      hoverWindow=nextWindow;
+      fluentScopedTargets=nextWindow
+        ? fluentTargetCache.filter(el=>el.closest('.window:not(.hidden)')===nextWindow)
+        : fluentTargetCache.filter(el=>!el.closest('.window:not(.hidden)'));
+      fluentGeomDirty=true;
+    }
     if(!window.__w10RevealFrameGate?.allow('v99',e.clientX,e.clientY))return;
     lastX=e.clientX;lastY=e.clientY;
     if(!raf)raf=requestAnimationFrame(renderAll);
@@ -37810,7 +37858,7 @@ body.w10-ult-noanim .fluent-box::before,body.w10-ult-noanim .fluent-box::after{t
   universalSpaciousContainers().forEach(attachUniversalSpaciousTracker);
   wireSpaciousParents();
   // Dynamically rebuilt app surfaces get wired on the next animation frame, without polling.
-  let wireRaf=0;
+  let wireRaf=0,wireDelay=0;
   const invalidateAllSpaciousGeometry=()=>{
     invalidateFluentGeometry();
     document.querySelectorAll(spaciousParentSel).forEach(p=>spaciousGeomDirty.set(p,true));
@@ -37818,7 +37866,21 @@ body.w10-ult-noanim .fluent-box::before,body.w10-ult-noanim .fluent-box::after{t
   };
   window.addEventListener('resize',invalidateAllSpaciousGeometry,{passive:true});
   window.addEventListener('scroll',invalidateAllSpaciousGeometry,{passive:true,capture:true});
-  const scheduleWire=()=>{if(wireRaf)return;wireRaf=requestAnimationFrame(()=>{wireRaf=0;invalidateAllSpaciousGeometry();wireCanvases();universalSpaciousContainers().forEach(attachUniversalSpaciousTracker);wireSpaciousParents();ensureTargets();refreshFluentTargets();})};
+  const scheduleWire=()=>{
+    if(wireRaf||wireDelay)return;
+    wireDelay=setTimeout(()=>{
+      wireDelay=0;
+      wireRaf=requestAnimationFrame(()=>{
+        wireRaf=0;
+        invalidateAllSpaciousGeometry();
+        wireCanvases();
+        universalSpaciousContainers().forEach(attachUniversalSpaciousTracker);
+        wireSpaciousParents();
+        ensureTargets();
+        refreshFluentTargets();
+      });
+    },120);
+  };
   document.addEventListener('pointerover',e=>{
     const parent=e.target.closest?.(spaciousParentSel);
     if(parent && parent.dataset.fluentGenericCanvasWired!=='1')scheduleWire();
@@ -37826,6 +37888,7 @@ body.w10-ult-noanim .fluent-box::before,body.w10-ult-noanim .fluent-box::after{t
   /* Pointer events already cover mouse movement; avoid a duplicate reveal listener. */
   window.addEventListener('mouseleave',()=>{active.forEach(clear);active.clear();},{passive:true});
   window.addEventListener('mousedown',e=>{
+    if(window.__w10BackgroundThrottle)return;
     const t=e.target.closest?.(selector);
     if(!eligible(t)||body.classList.contains('w10-noanim')||body.classList.contains('w10-ult-noanim'))return;
     t.animate([{filter:'brightness(1)'},{filter:'brightness(1.12)'},{filter:'brightness(1)'}],{duration:170,easing:'ease-out'}).catch(()=>{});
@@ -37850,7 +37913,7 @@ body.w10-ult-noanim .fluent-box::before,body.w10-ult-noanim .fluent-box::after{t
  const blocked='.w10switch,.w10-switch,input,textarea,select,canvas,[data-fluent-skip],.controls button,.window-controls,.control-btn,.close-btn,.avatar,.menu-toggle,.toolbar button,.masterToolbar .mBtn';
  const eligible=el=>el instanceof Element&&el.isConnected&&!el.matches(blocked)&&!el.closest(blocked)&&el.id!=='startBtn'&&!el.closest('#startBtn');
  document.addEventListener('pointerdown',e=>{
-  if(body.classList.contains('w10-noanim')||body.classList.contains('w10-ult-noanim'))return;
+  if(window.__w10BackgroundThrottle||body.classList.contains('w10-noanim')||body.classList.contains('w10-ult-noanim'))return;
   const t=e.target?.closest?.(selector); if(!eligible(t))return;
   const r=t.getBoundingClientRect(); if(!r.width||!r.height)return;
   t.classList.add('w10-press-host');
@@ -38007,6 +38070,7 @@ body.w10-ult-noanim .fluent-box::before,body.w10-ult-noanim .fluent-box::after{t
       });
     };
     const move=e=>{
+      if(window.__w10BackgroundThrottle)return;
       if(!window.__w10RevealFrameGate?.allow('left',e.clientX,e.clientY))return;
       state.x=e.clientX;state.y=e.clientY;
       if(state.raf)return;
@@ -38154,6 +38218,7 @@ body.w10-ult-noanim .fluent-box::before,body.w10-ult-noanim .fluent-box::after{t
     return null;
   };
   document.addEventListener('pointermove',e=>{
+    if(window.__w10BackgroundThrottle)return;
     if(!window.__w10RevealFrameGate?.allow('global',e.clientX,e.clientY))return;
     const p=pickParent(e);
     if(!p){if(lastParent){(parents.get(lastParent)||[]).forEach(clear);lastParent=null}return}
@@ -38645,7 +38710,7 @@ function perfPoints(key,current){
 }
 function drawPerfFrame(){
   perfAnimFrame=0;
-  if(document.hidden||w26PerfWidgets.size===0){perfAnimRunning=false;return;}
+  if(window.__w10BackgroundThrottle||document.hidden||w26PerfWidgets.size===0){perfAnimRunning=false;return;}
   let active=false;
   const root=document.getElementById('w26DesktopWorkspace');
   if(!root){perfAnimRunning=false;return;}
@@ -38673,11 +38738,13 @@ function drawPerfFrame(){
   if(active)perfAnimFrame=requestAnimationFrame(drawPerfFrame);
 }
 function startPerfVisualAnimation(){
+  if(window.__w10BackgroundThrottle)return;
   if(perfAnimRunning)return;
   perfAnimRunning=true;
   if(!perfAnimFrame)perfAnimFrame=requestAnimationFrame(drawPerfFrame);
 }
 function updatePerfHubs(){
+  if(window.__w10BackgroundThrottle)return;
   const root=document.getElementById('w26DesktopWorkspace');
   if(!root||w26PerfWidgets.size===0)return;
   const m=taskManagerMetrics();
@@ -38715,6 +38782,7 @@ function boot(){
   ensureSettingsGlassSliderSync();
   if(!window.__w26SharedScheduler){
     window.__w26SharedScheduler=setInterval(()=>{
+      if(window.__w10BackgroundThrottle)return;
       const root=document.getElementById('w26DesktopWorkspace');
       if(!root||!root.isConnected)return;
       w26SharedLiveTick();
@@ -40190,10 +40258,11 @@ body:not(.w10-glass-off) #contextMenu:not(.hidden).g-reveal::after{opacity:1}
   };
   const schedule=()=>{if(!raf)raf=requestAnimationFrame(paint)};
   menu.addEventListener('pointerenter',e=>{
+    if(window.__w10BackgroundThrottle)return;
     inside=true;rect=menu.getBoundingClientRect();tx=cx=e.clientX;ty=cy=e.clientY;schedule();
   },{passive:true});
-  menu.addEventListener('pointermove',e=>{tx=e.clientX;ty=e.clientY;schedule()},{passive:true});
-  menu.addEventListener('pointerdown',e=>{tx=e.clientX;ty=e.clientY;schedule()},{passive:true});
+  menu.addEventListener('pointermove',e=>{if(window.__w10BackgroundThrottle)return;tx=e.clientX;ty=e.clientY;schedule()},{passive:true});
+  menu.addEventListener('pointerdown',e=>{if(window.__w10BackgroundThrottle)return;tx=e.clientX;ty=e.clientY;schedule()},{passive:true});
   menu.addEventListener('pointerleave',()=>{
     inside=false;rect=null;
     if(raf){cancelAnimationFrame(raf);raf=0;}
@@ -48207,9 +48276,14 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
   async function downloadPackage(manifest,setStatus,progress){
     const version=String(manifest.version);
     const cached=await cachedPackage(manifest);
-    if(cached){setStatus('Minecraft is ready from this device cache.');return cached;}
+    if(cached){setStatus('Minecraft is ready from this device cache.');return manifest;}
 
-    const parts=[];
+    const previousVersion=await idbGet('meta','version').catch(()=>null);
+    if(previousVersion&&previousVersion!==version){
+      /* Avoid keeping multiple ~100 MB compressed builds on one Chromebook. */
+      await clearCache();
+    }
+
     for(let i=0;i<manifest.parts.length;i++){
       const p=manifest.parts[i];
       setStatus('Downloading Minecraft '+(i+1)+' / '+manifest.parts.length+'…');
@@ -48221,34 +48295,70 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
         const got=await sha256Hex(buf);
         if(got && got.toLowerCase()!==String(p.sha256).toLowerCase())throw new Error('Minecraft package part '+(i+1)+' failed integrity verification.');
       }
-      parts.push(buf);
-      progress((i+1)/manifest.parts.length,'Downloaded Minecraft '+(i+1)+' / '+manifest.parts.length);
       await idbPut('parts',version+':'+i,buf);
+      progress((i+1)/manifest.parts.length,'Downloaded Minecraft '+(i+1)+' / '+manifest.parts.length);
     }
     await idbPut('meta','version',version);
     await idbPut('meta','manifest',manifest);
-    return parts;
+    return manifest;
   }
 
-  async function decompressWholeStream(parts,progress){
-    const compressed=new Blob(parts,{type:'application/gzip'});
+  async function decompressWholeStream(manifest,progress){
     if(typeof DecompressionStream!=='function')throw new Error('This Chromium build does not support GZIP decompression.');
-    progress(.05,'Preparing Minecraft…');
-    const ds=new DecompressionStream('gzip');
-    const stream=compressed.stream().pipeThrough(ds);
-    const bytes=await new Response(stream).arrayBuffer();
+    const version=String(manifest.version);
+    let index=0;
+    const compressedStream=new ReadableStream({
+      async pull(controller){
+        if(index>=manifest.parts.length){controller.close();return;}
+        const p=manifest.parts[index];
+        const data=await idbGet('parts',version+':'+index);
+        if(!(data instanceof ArrayBuffer)||!data.byteLength){controller.error(new Error('Minecraft package part '+(index+1)+' is missing from the device cache.'));return;}
+        if(p.size && data.byteLength!==Number(p.size)){controller.error(new Error('Minecraft package part '+(index+1)+' has the wrong cached size.'));return;}
+        controller.enqueue(new Uint8Array(data));
+        index++;
+        progress(Math.min(.18,.02+.16*(index/Math.max(1,manifest.parts.length))),'Preparing Minecraft '+index+' / '+manifest.parts.length+'…');
+      }
+    });
+    const decompressed=compressedStream.pipeThrough(new DecompressionStream('gzip'));
+    const blob=await new Response(decompressed).blob();
     progress(1,'Starting Minecraft…');
-    return new Blob([bytes],{type:'text/html;charset=utf-8'});
+    return blob;
   }
 
   function launchIframe(c,win,blob){
-    c.innerHTML='<div class="w10-mc-game-wrap"><iframe class="w10-mc-game" allow="fullscreen; autoplay" allowfullscreen title="Minecraft"></iframe></div>';
+    c.innerHTML='<div class="w10-mc-game-wrap" tabindex="0"><iframe class="w10-mc-game" allow="fullscreen; autoplay; pointer-lock; gamepad" allowfullscreen tabindex="0" title="Minecraft"></iframe></div>';
+    const wrap=c.querySelector('.w10-mc-game-wrap');
     const frame=c.querySelector('iframe');
     const url=URL.createObjectURL(blob);
     win.__w10MinecraftBlobURL=url;
+
+    /* Keep all keyboard/pointer interaction inside the real game iframe.
+       Eaglercraft relies on a focused document plus pointer-lock permission for
+       normal WASD/mouse controls. */
+    const focusGame=()=>{
+      try{frame.focus({preventScroll:true})}catch(e){try{frame.focus()}catch(_){} }
+      try{frame.contentWindow?.focus()}catch(e){}
+    };
+    wrap.addEventListener('pointerdown',focusGame,{capture:true});
+    wrap.addEventListener('click',focusGame,{capture:true});
+    frame.addEventListener('load',()=>setTimeout(focusGame,40));
+
+    /* Double-clicking the game surface is a browser-level fullscreen fallback.
+       The game can still request fullscreen itself through the permission above. */
+    wrap.addEventListener('dblclick',async e=>{
+      if(document.fullscreenElement===frame||document.fullscreenElement===wrap)return;
+      try{
+        if(frame.requestFullscreen)await frame.requestFullscreen();
+        else if(wrap.requestFullscreen)await wrap.requestFullscreen();
+        focusGame();
+      }catch(err){}
+    },{passive:true});
+
     frame.src=url;
-    frame.addEventListener('load',()=>{setTimeout(()=>{try{frame.contentWindow?.focus()}catch(e){}},150)});
-    win.__w10MinecraftCleanup=()=>{try{URL.revokeObjectURL(url)}catch(e){}};
+    win.__w10MinecraftCleanup=()=>{
+      try{if(document.fullscreenElement===frame||document.fullscreenElement===wrap)document.exitFullscreen?.()}catch(e){}
+      try{URL.revokeObjectURL(url)}catch(e){}
+    };
     const close=win.querySelector('.close');
     if(close&&!close.__w10MinecraftCloseWrapped){
       const old=close.onclick;
@@ -48277,8 +48387,8 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
           return;
         }
         const manifest=await fetchManifest();
-        const parts=await downloadPackage(manifest,setStatus,progress);
-        const blob=await decompressWholeStream(parts,progress);
+        const readyManifest=await downloadPackage(manifest,setStatus,progress);
+        const blob=await decompressWholeStream(readyManifest,progress);
         launchIframe(c,win,blob);
       }catch(e){
         root.dataset.started='';
@@ -48303,27 +48413,14 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
   window.__canonicalAppRenderers=window.__canonicalAppRenderers||{};
   window.__canonicalAppRenderers.minecraft=renderer;
 
-  const prevOpen=window.openApp;
-  if(typeof prevOpen==='function'&&!prevOpen.__w10MinecraftWrapped){
-    const wrapped=function(id){
-      const w=prevOpen.apply(this,arguments);
-      if(String(id||'').toLowerCase()==='minecraft'&&w){
-        w.style.width='1040px';w.style.height='650px';w.style.maxWidth='calc(100vw - 24px)';w.style.maxHeight='calc(100vh - 66px)';w.style.left=Math.max(12,Math.round((innerWidth-1040)/2))+'px';w.style.top=Math.max(12,Math.round((innerHeight-650)/2))+'px';
-        const title=w.querySelector('.titlebar .title');if(title){title.innerHTML=`<img src="${icon}" alt="" style="width:24px;height:24px;object-fit:contain;vertical-align:middle;margin-right:7px;border-radius:6px">Minecraft`;}
-        setTimeout(()=>{try{w.querySelectorAll('.v-task,.task').forEach(t=>{if((t.textContent||'').includes('Minecraft')){t.innerHTML=`<img src="${icon}" alt="" style="width:24px;height:24px;object-fit:contain;vertical-align:middle;margin-right:6px">Minecraft`}})}catch(e){}},0);
-      }
-      return w;
-    };
-    wrapped.__w10MinecraftWrapped=true;wrapped.original=prevOpen;window.openApp=wrapped;
-  }
-
   function refreshSurfaces(){
     try{window.__w10V28?.buildStart?.();window.__w10V28?.renderDesktop?.()}catch(e){}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(refreshSurfaces,0),{once:true});
   else setTimeout(refreshSurfaces,0);
 })();
-</script>\n
+</script>
+
 <!-- W10 Minecraft visibility bridge: expose the approved icon to the canonical app/Start/Search registries. -->
 <script id="w10-minecraft-app-visible-bridge">
 (()=>{
@@ -48355,106 +48452,256 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
 <script id="w10-minecraft-final-routing-repair">
 (()=>{
   'use strict';
-  if(window.__w10MinecraftFinalRoutingRepair)return;
-  window.__w10MinecraftFinalRoutingRepair=true;
-
+  if(window.__w10MinecraftFinalRoutingRepairV2)return;
+  window.__w10MinecraftFinalRoutingRepairV2=true;
   const MCI='minecraft';
-  const mcIcon=()=>{
-    try{return String(window.__w10IconAssets?.minecraft||'')}catch(e){return ''}
-  };
+  try{if(typeof V==='object'&&V&&Array.isArray(V.minecraft))V.minecraft[1]=''}catch(e){}
+  try{if(typeof appDefs==='object'&&appDefs&&Array.isArray(appDefs.minecraft))appDefs.minecraft[1]=''}catch(e){}
 
-  /* The legacy window manager stores [name, text-icon] in V. The previous
-     visibility bridge incorrectly put a full data:image URL into V.minecraft[1],
-     which made the data URL appear as text and could leak into older launch paths. */
-  try{
-    if(typeof V==='object' && V && Array.isArray(V.minecraft)) V.minecraft[1]='';
-  }catch(e){}
-  try{
-    if(typeof appDefs==='object' && appDefs && Array.isArray(appDefs.minecraft)) appDefs.minecraft[1]='';
-  }catch(e){}
-
-  /* The latest global router predates Minecraft and falls through to genericApp().
-     Keep every existing renderer intact; only add the missing canonical route. */
   const previousRender=window.render;
-  if(typeof previousRender==='function' && !previousRender.__w10MinecraftFinalRenderRepair){
+  if(typeof previousRender==='function'&&!previousRender.__w10MinecraftFinalRenderRepairV2){
     const repairedRender=function(id,c){
       const key=String(id||'').trim().toLowerCase();
-      if(key===MCI && typeof window.__w10MinecraftRenderer==='function'){
-        return window.__w10MinecraftRenderer(c);
-      }
+      if(key===MCI&&typeof window.__w10MinecraftRenderer==='function')return window.__w10MinecraftRenderer(c);
       return previousRender.apply(this,arguments);
     };
-    repairedRender.__w10MinecraftFinalRenderRepair=true;
+    repairedRender.__w10MinecraftFinalRenderRepairV2=true;
     repairedRender.__w10MinecraftOriginal=previousRender;
     window.render=repairedRender;
   }
 
-  /* Normalize a stray Minecraft icon data URL if an older launcher hands the
-     icon itself to openApp instead of the canonical app ID. */
-  const previousOpen=window.openApp;
-  if(typeof previousOpen==='function' && !previousOpen.__w10MinecraftFinalOpenRepair){
-    const repairedOpen=function(id){
-      let key=id;
-      try{
-        const raw=String(id||'');
-        const icon=mcIcon();
-        if(icon && raw===icon) key=MCI;
-      }catch(e){}
-
-      const w=previousOpen.call(this,key);
-      if(String(key||'').toLowerCase()===MCI && w){
-        try{
-          w.dataset.app=MCI;
-          const title=w.querySelector('.titlebar .title');
-          const icon=mcIcon();
-          if(title){
-            title.innerHTML='';
-            if(icon){
-              const im=document.createElement('img');
-              im.src=icon; im.alt=''; im.draggable=false;
-              im.style.cssText='width:24px;height:24px;object-fit:contain;vertical-align:middle;margin-right:7px;border-radius:6px';
-              title.appendChild(im);
-            }
-            title.appendChild(document.createTextNode('Minecraft'));
-          }
-          const fixTasks=()=>{
-            try{
-              document.querySelectorAll('.v-task,.task').forEach(t=>{
-                if(t._w===w || /Minecraft/i.test(t.textContent||'')){
-                  t.innerHTML='';
-                  if(icon){
-                    const im=document.createElement('img');
-                    im.src=icon; im.alt=''; im.draggable=false;
-                    im.style.cssText='width:24px;height:24px;object-fit:contain;vertical-align:middle;margin-right:6px';
-                    t.appendChild(im);
-                  }
-                  t.appendChild(document.createTextNode('Minecraft'));
-                }
-              });
-            }catch(e){}
-          };
-          fixTasks();
-          setTimeout(fixTasks,0);
-        }catch(e){}
-      }
-      return w;
-    };
-    repairedOpen.__w10MinecraftFinalOpenRepair=true;
-    repairedOpen.__w10MinecraftOriginal=previousOpen;
-    window.openApp=repairedOpen;
-    try{window.open=repairedOpen}catch(e){}
-  }
-
-  /* Re-register the canonical renderer after all legacy router declarations have run. */
   try{
     window.__canonicalAppRenderers=window.__canonicalAppRenderers||{};
-    if(typeof window.__w10MinecraftRenderer==='function'){
-      window.__canonicalAppRenderers[MCI]=window.__w10MinecraftRenderer;
-    }
+    if(typeof window.__w10MinecraftRenderer==='function')window.__canonicalAppRenderers[MCI]=window.__w10MinecraftRenderer;
   }catch(e){}
+  try{window.__w10V28?.buildStart?.();window.__w10V28?.renderDesktop?.()}catch(e){}
+})();
+</script>
 
-  /* Refresh only the Start/Desktop surfaces; no global observer is introduced. */
-  try{window.__w10V28?.buildStart?.()}catch(e){}
-  try{window.__w10V28?.renderDesktop?.()}catch(e){}
+<!-- W10 Minecraft performance optimization: isolated game compositor, no glass blur on the live 3D game window. -->
+<style id="w10-minecraft-performance-fix-v4">
+/* Minecraft performance governor v4:
+   Keep the exact Windows/Liquid Glass presentation intact.
+   Only isolate the live game surface and pause unnecessary background motion. */
+body.w10-minecraft-performance .w10-mc-game-wrap{
+  contain:layout paint!important;
+  isolation:isolate!important;
+}
+body.w10-minecraft-performance .w10-mc-game{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  border:0!important;
+  background:#000!important;
+  transform:translateZ(0);
+  backface-visibility:hidden;
+  contain:layout paint!important;
+}
+/* Do not flatten, hide, recolor, or de-glass the Windows shell.
+   Background-only CSS animation work is simply paused while Minecraft is active. */
+body.w10-minecraft-performance #desktop::before,
+body.w10-minecraft-performance #desktop::after,
+body.w10-minecraft-performance #desktop .wall-particle,
+body.w10-minecraft-performance #w26DesktopWorkspace *,
+body.w10-minecraft-performance #startMenu *,
+body.w10-minecraft-performance #contextMenu *,
+body.w10-minecraft-performance #windows .window:not([data-app="minecraft"]) *{
+  animation-play-state:paused!important;
+}
+body.w10-minecraft-performance #w26DesktopWorkspace,
+body.w10-minecraft-performance #startMenu,
+body.w10-minecraft-performance #contextMenu,
+body.w10-minecraft-performance #windows .window:not([data-app="minecraft"]){
+  animation-play-state:paused!important;
+}
+</style>
+<script id="w10-minecraft-performance-fix-v4-js">
+(()=>{
+  'use strict';
+  if(window.__w10MinecraftPerformanceFixV4)return;
+  window.__w10MinecraftPerformanceFixV4=true;
+
+  const body=document.body;
+  const desktop=document.getElementById('desktop');
+  const taskbar=document.getElementById('taskbar');
+  const saved={desktopFilter:null,taskbarFilter:null};
+  const revealVars=[
+    '--v86-rx','--v86-ry','--v86-top','--v86-right','--v86-bottom','--v86-left',
+    '--v86-top-x','--v86-right-y','--v86-bottom-x','--v86-left-y',
+    '--fluent-child-left','--fluent-child-top','--g-x','--g-y','--g-edge',
+    '--left-rx','--left-ry','--left-row-left','--left-row-top'
+  ];
+  const mcWin=()=>document.querySelector('#windows .window[data-app="minecraft"]');
+
+  function clearBackgroundReveal(){
+    document.querySelectorAll('.v86-rv,.g-reveal,.left-reveal-active').forEach(el=>{
+      revealVars.forEach(k=>el.style.removeProperty(k));
+      el.classList.remove('v86-rv','g-reveal','left-reveal-active');
+    });
+    try{window.__w10RevealInvalidate?.()}catch(_){}
+  }
+
+  function setBackgroundThrottle(on){
+    try{
+      window.__w10BackgroundThrottle=!!on;
+      document.documentElement.classList.toggle('w10-background-throttled',!!on);
+    }catch(_){}
+    if(on) clearBackgroundReveal();
+  }
+
+  function perfOn(){
+    if(!body)return;
+    body.classList.add('w10-minecraft-performance');
+    if(desktop&&saved.desktopFilter===null)saved.desktopFilter=desktop.style.filter;
+    if(taskbar&&saved.taskbarFilter===null)saved.taskbarFilter=taskbar.style.filter;
+    /* Preserve all existing filters/glass; no flattening is performed. */
+    if(desktop&&saved.desktopFilter!==null)desktop.style.filter=saved.desktopFilter;
+    if(taskbar&&saved.taskbarFilter!==null)taskbar.style.filter=saved.taskbarFilter;
+    setBackgroundThrottle(true);
+  }
+
+  function perfOff(){
+    if(!body)return;
+    body.classList.remove('w10-minecraft-performance');
+    setBackgroundThrottle(false);
+    if(desktop&&saved.desktopFilter!==null)desktop.style.filter=saved.desktopFilter;
+    if(taskbar&&saved.taskbarFilter!==null)taskbar.style.filter=saved.taskbarFilter;
+    saved.desktopFilter=null;
+    saved.taskbarFilter=null;
+  }
+
+  function cleanupIcons(win){
+    if(!win)return;
+    const canonicalSel='img.w10-v31-surface';
+    const title=win.querySelector('.titlebar .title');
+    if(title){
+      const canonical=title.querySelector(':scope > '+canonicalSel);
+      [...title.children].forEach(el=>{if(el.tagName==='IMG'&&el!==canonical)el.remove()});
+    }
+    const tasks=[...document.querySelectorAll('#taskApps .task,#taskApps .v-task,.taskbar .task')].filter(t=>t._w===win||/Minecraft/i.test(t.textContent||''));
+    if(tasks.length>1){
+      const primary=tasks.find(t=>t._w===win)||tasks[0];
+      tasks.filter(t=>t!==primary).forEach(t=>t.remove());
+    }
+    const task=tasks.find(t=>t._w===win)||tasks[0];
+    if(task){
+      const canonical=task.querySelector(':scope > '+canonicalSel);
+      [...task.children].forEach(el=>{if(el.tagName==='IMG'&&el!==canonical)el.remove()});
+    }
+  }
+
+  function focusGame(win){
+    const f=win?.querySelector('.w10-mc-game');
+    if(!f)return;
+    try{f.focus({preventScroll:true})}catch(e){try{f.focus()}catch(_){}}
+    try{f.contentWindow?.focus()}catch(e){}
+  }
+
+  function wireMax(win){
+    if(!win||win.__w10MinecraftMaxWiredV4)return;
+    const btn=win.querySelector('.controls button:nth-child(2)');
+    if(!btn)return;
+    win.__w10MinecraftMaxWiredV4=true;
+    const props=['left','top','right','bottom','width','height','maxWidth','maxHeight'];
+    let savedGeom=null;
+    btn.onclick=e=>{
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if(!win.__w10MinecraftMaximizedV4){
+        savedGeom={};
+        props.forEach(k=>savedGeom[k]=win.style[k]);
+        ['v-max','v-snap-left','v-snap-right'].forEach(c=>win.classList.remove(c));
+        win.classList.add('max');
+        win.style.setProperty('left','0px','important');
+        win.style.setProperty('top','0px','important');
+        win.style.setProperty('right','auto','important');
+        win.style.setProperty('bottom','auto','important');
+        win.style.setProperty('width','100vw','important');
+        win.style.setProperty('height','calc(100vh - 48px)','important');
+        win.style.setProperty('max-width','none','important');
+        win.style.setProperty('max-height','none','important');
+        win.__w10MinecraftMaximizedV4=true;
+        btn.setAttribute('aria-label','Restore');
+        btn.setAttribute('title','Restore');
+        btn.textContent='❐';
+      }else{
+        win.classList.remove('max','v-max','v-snap-left','v-snap-right');
+        if(savedGeom){
+          props.forEach(k=>{
+            const css=k.replace(/[A-Z]/g,m=>'-'+m.toLowerCase());
+            const value=savedGeom[k];
+            if(value)win.style[k]=value;else win.style.removeProperty(css);
+          });
+        }
+        win.__w10MinecraftMaximizedV4=false;
+        btn.setAttribute('aria-label','Maximize');
+        btn.setAttribute('title','Maximize');
+        btn.textContent='□';
+      }
+      requestAnimationFrame(()=>focusGame(win));
+    };
+  }
+
+  function wire(win){
+    if(!win)return;
+    if(win.classList.contains('hidden')){perfOff();return;}
+    perfOn();
+    wireMax(win);
+    cleanupIcons(win);
+    requestAnimationFrame(()=>cleanupIcons(win));
+    setTimeout(()=>cleanupIcons(win),80);
+    const wrap=win.querySelector('.w10-mc-game-wrap');
+    if(wrap&&!wrap.__w10McParentInputV4){
+      wrap.__w10McParentInputV4=true;
+      wrap.addEventListener('pointerdown',()=>focusGame(win),{capture:true,passive:true});
+    }
+    const close=win.querySelector('.close');
+    if(close&&!close.__w10MinecraftPerfCloseV4){
+      close.addEventListener('click',()=>setTimeout(perfOff,0),true);
+      close.__w10MinecraftPerfCloseV4=true;
+    }
+  }
+
+  const host=document.getElementById('windows');
+  if(host){
+    const obs=new MutationObserver(()=>{
+      const w=mcWin();
+      if(w&&!w.classList.contains('hidden'))wire(w);
+      else perfOff();
+    });
+    obs.observe(host,{childList:true,subtree:true});
+  }
+  const initial=mcWin();
+  if(initial&&!initial.classList.contains('hidden'))wire(initial);
+  else setBackgroundThrottle(false);
+})();
+</script>
+
+
+<script id="w10-minecraft-final-input-fullscreen-repair-v1">
+(()=>{
+  'use strict';
+  if(window.__w10MinecraftInputFullscreenRepairV1)return;
+  window.__w10MinecraftInputFullscreenRepairV1=true;
+  const find=()=>document.querySelector('#windows .window[data-app="minecraft"]');
+  const focus=()=>{const f=find()?.querySelector('.w10-mc-game');if(!f)return;try{f.focus({preventScroll:true})}catch(e){try{f.focus()}catch(_){}};try{f.contentWindow?.focus()}catch(e){}};
+  document.addEventListener('pointerdown',e=>{const f=e.target?.closest?.('#windows .window[data-app="minecraft"] .w10-mc-game');if(f)focus()},{capture:true,passive:true});
+  window.addEventListener('resize',()=>{const w=find();if(!w||!w.__w10MinecraftMaximizedV4)return;w.style.setProperty('width','100vw','important');w.style.setProperty('height','calc(100vh - 48px)','important')},{passive:true});
+  document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement)focus()},{passive:true});
+})();
+</script>
+
+<script id="w10-minecraft-final-runtime-guard-v3">
+(()=>{
+  'use strict';
+  if(window.__w10MinecraftFinalRuntimeGuardV3)return;
+  window.__w10MinecraftFinalRuntimeGuardV3=true;
+  const find=()=>document.querySelector('#windows .window[data-app="minecraft"]');
+  const focus=()=>{const f=find()?.querySelector('.w10-mc-game');if(!f)return;try{f.focus({preventScroll:true})}catch(e){try{f.focus()}catch(_){}};try{f.contentWindow?.focus()}catch(e){}};
+  document.addEventListener('pointerdown',e=>{if(e.target?.closest?.('#windows .window[data-app="minecraft"] .w10-mc-game-wrap'))focus()},{capture:true,passive:true});
+  window.addEventListener('resize',()=>{const w=find();if(!w?.__w10MinecraftMaximizedV4)return;w.style.setProperty('width','100vw','important');w.style.setProperty('height','calc(100vh - 48px)','important');w.style.setProperty('left','0px','important');w.style.setProperty('top','0px','important')},{passive:true});
+  document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement)focus()},{passive:true});
 })();
 </script>
