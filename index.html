@@ -48373,7 +48373,7 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
   if(window.__w10MinecraftLayer)return;
   window.__w10MinecraftLayer=true;
 
-  /* W10 Minecraft ONLINE loader v2:
+  /* W10 Minecraft ONLINE loader v3 (ChromOS main-thread decompression offload + ready-HTML cache):
      - the real Eaglercraft HTML is hosted outside index.html
      - one gzip stream is split into GitHub-safe parts
      - manifest describes the package; no filenames are hard-coded
@@ -48498,9 +48498,112 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
     return manifest;
   }
 
+  /*
+     ChromeOS/Celeron startup optimization:
+     - cache the fully reconstructed HTML in IndexedDB so later launches skip
+       the expensive six-part gzip reconstruction entirely
+     - perform the first reconstruction in a dedicated Web Worker, keeping the
+       simulator's main thread responsive while the ~150 MB HTML is rebuilt
+     - preserve the exact HTML bytes and MIME type; no game code/assets change
+  */
+  function makeDecompressWorker(){
+    const source=`
+      'use strict';
+      const DB='w10-minecraft-eaglercraft-online-v2';
+      function openDB(){
+        return new Promise((resolve,reject)=>{
+          if(!self.indexedDB)return reject(new Error('IndexedDB is unavailable in the Minecraft worker.'));
+          const r=self.indexedDB.open(DB,1);
+          r.onupgradeneeded=()=>{
+            const db=r.result;
+            if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta',{keyPath:'key'});
+            if(!db.objectStoreNames.contains('parts'))db.createObjectStore('parts',{keyPath:'key'});
+          };
+          r.onsuccess=()=>resolve(r.result);
+          r.onerror=()=>reject(r.error||new Error('Minecraft worker IndexedDB error'));
+        });
+      }
+      async function getPart(key){
+        const db=await openDB();
+        return new Promise((resolve,reject)=>{
+          const t=db.transaction('parts','readonly');
+          const q=t.objectStore('parts').get(key);
+          q.onsuccess=()=>{db.close();resolve(q.result?.data??null)};
+          q.onerror=()=>{db.close();reject(q.error||new Error('Minecraft worker cache read failed'))};
+        });
+      }
+      self.onmessage=async ev=>{
+        if(ev.data?.type!=='decompress')return;
+        try{
+          if(typeof self.DecompressionStream!=='function')throw new Error('This Chromium build does not support GZIP decompression in workers.');
+          const version=String(ev.data.version||'');
+          const parts=Array.isArray(ev.data.parts)?ev.data.parts:[];
+          if(!version||!parts.length)throw new Error('Minecraft worker received an invalid package description.');
+          let index=0;
+          const stream=new ReadableStream({
+            async pull(controller){
+              if(index>=parts.length){controller.close();return;}
+              const p=parts[index];
+              const data=await getPart(version+':'+index);
+              if(!(data instanceof ArrayBuffer)||!data.byteLength)throw new Error('Minecraft package part '+(index+1)+' is missing from the device cache.');
+              if(p.size && data.byteLength!==Number(p.size))throw new Error('Minecraft package part '+(index+1)+' has the wrong cached size.');
+              controller.enqueue(new Uint8Array(data));
+              index++;
+              self.postMessage({type:'progress',index,total:parts.length});
+            }
+          });
+          const decompressed=stream.pipeThrough(new DecompressionStream('gzip'));
+          const blob=await new Response(decompressed,{headers:{'Content-Type':'text/html;charset=utf-8'}}).blob();
+          self.postMessage({type:'done',blob});
+        }catch(err){
+          self.postMessage({type:'error',message:String(err?.message||err)});
+        }
+      };
+    `;
+    return new Worker(URL.createObjectURL(new Blob([source],{type:'text/javascript'})));
+  }
+
   async function decompressWholeStream(manifest,progress){
     if(typeof DecompressionStream!=='function')throw new Error('This Chromium build does not support GZIP decompression.');
     const version=String(manifest.version);
+
+    /* A complete HTML cache makes reopen/relaunch effectively skip the
+       expensive gzip reconstruction. The existing package cache remains the
+       source of truth and clearCache() already removes this entry. */
+    const cachedHtml=await idbGet('meta','html:'+version).catch(()=>null);
+    if(cachedHtml && cachedHtml instanceof Blob && cachedHtml.size>0){
+      progress(1,'Starting Minecraft from cached game…');
+      return cachedHtml;
+    }
+
+    /* First-build path: move the entire gzip/decompression operation off the
+       simulator's main thread. The worker reads the existing IndexedDB parts
+       directly, so there is no giant main-thread ArrayBuffer transfer. */
+    if(typeof Worker==='function'){
+      const worker=makeDecompressWorker();
+      try{
+        const blob=await new Promise((resolve,reject)=>{
+          let settled=false;
+          const finish=(fn,value)=>{if(settled)return;settled=true;try{worker.terminate()}catch(e){}fn(value)};
+          worker.onmessage=ev=>{
+            const d=ev.data||{};
+            if(d.type==='progress'){
+              progress(Math.min(.18,.02+.16*(Number(d.index||0)/Math.max(1,manifest.parts.length))),'Preparing Minecraft '+Number(d.index||0)+' / '+manifest.parts.length+'…');
+            }else if(d.type==='done')finish(resolve,d.blob);
+            else if(d.type==='error')finish(reject,new Error(d.message||'Minecraft worker decompression failed.'));
+          };
+          worker.onerror=()=>finish(reject,new Error('Minecraft worker decompression failed.'));
+          worker.postMessage({type:'decompress',version,parts:manifest.parts});
+        });
+        await idbPut('meta','html:'+version,blob).catch(()=>{});
+        progress(1,'Starting Minecraft…');
+        return blob;
+      }catch(e){
+        /* Fall back to the proven main-thread stream if worker support is
+           incomplete in an older Chromium build. */
+      }
+    }
+
     let index=0;
     const compressedStream=new ReadableStream({
       async pull(controller){
@@ -48516,6 +48619,7 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
     });
     const decompressed=compressedStream.pipeThrough(new DecompressionStream('gzip'));
     const blob=await new Response(decompressed,{headers:{'Content-Type':'text/html;charset=utf-8'}}).blob();
+    await idbPut('meta','html:'+version,blob).catch(()=>{});
     progress(1,'Starting Minecraft…');
     return blob;
   }
