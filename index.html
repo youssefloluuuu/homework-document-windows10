@@ -43433,6 +43433,104 @@ html body #w10-google-connected-search-v2 .w10gs-hero-image{
 }
 </style>
 
+
+
+<!-- W10 Minecraft keyboard input bridge: preserves the game payload and simulator behavior. -->
+<script id="w10-minecraft-keyboard-bridge-v1">
+(()=>{
+  'use strict';
+  if(window.__w10MinecraftKeyboardBridgeV1)return;
+  window.__w10MinecraftKeyboardBridgeV1=true;
+
+  let armed=false;
+  let lastFrame=null;
+
+  const getFrame=()=>document.querySelector('#windows .window[data-app="minecraft"] .w10-mc-game');
+  const getWrap=()=>document.querySelector('#windows .window[data-app="minecraft"] .w10-mc-game-wrap');
+  const visible=()=>{
+    const f=getFrame(),w=f?.closest?.('.window');
+    return !!(f&&w&&document.body.contains(w)&&!w.classList.contains('hidden')&&getComputedStyle(w).display!=='none');
+  };
+
+  function primeFrame(frame){
+    if(!frame)return;
+    lastFrame=frame;
+    try{frame.setAttribute('tabindex','0');}catch(_){ }
+    try{frame.contentDocument?.documentElement?.setAttribute('tabindex','0');}catch(_){ }
+    try{frame.contentDocument?.body?.setAttribute('tabindex','0');}catch(_){ }
+    try{frame.focus({preventScroll:true});}catch(_){try{frame.focus();}catch(__){}}
+    try{frame.contentWindow?.focus();}catch(_){ }
+    try{frame.contentDocument?.documentElement?.focus({preventScroll:true});}catch(_){ }
+    try{frame.contentDocument?.body?.focus({preventScroll:true});}catch(_){ }
+  }
+
+  function arm(){
+    if(!visible())return;
+    armed=true;
+    primeFrame(getFrame());
+    [0,32,100,250].forEach(ms=>setTimeout(()=>{
+      if(armed&&visible())primeFrame(getFrame()||lastFrame);
+    },ms));
+  }
+
+  function disarm(){armed=false;}
+
+  function defineKeyProps(ev,src){
+    const props={keyCode:src.keyCode||0,which:src.which||src.keyCode||0,charCode:src.charCode||0};
+    for(const [k,v] of Object.entries(props)){
+      try{Object.defineProperty(ev,k,{configurable:true,get:()=>v});}catch(_){ }
+    }
+    return ev;
+  }
+
+  function relay(src,type){
+    if(!armed||!visible())return false;
+    const frame=getFrame(),cw=frame?.contentWindow;
+    if(!frame||!cw)return false;
+    try{
+      const ev=defineKeyProps(new KeyboardEvent(type,{
+        key:src.key,code:src.code,location:src.location,
+        ctrlKey:src.ctrlKey,shiftKey:src.shiftKey,altKey:src.altKey,metaKey:src.metaKey,
+        repeat:src.repeat,isComposing:src.isComposing,bubbles:true,cancelable:true,composed:true
+      }),src);
+      cw.dispatchEvent(ev);
+      return true;
+    }catch(_){return false;}
+  }
+
+  document.addEventListener('pointerdown',e=>{
+    if(e.target?.closest?.('#windows .window[data-app="minecraft"] .w10-mc-game-wrap')){
+      arm();
+    }else if(!e.target?.closest?.('#windows .window[data-app="minecraft"]')){
+      disarm();
+    }
+  },{capture:true,passive:true});
+
+  window.addEventListener('keydown',e=>{
+    if(!armed||!visible())return;
+    const key=String(e.key||'').toLowerCase();
+    /* Keep browser/OS navigation shortcuts native. */
+    if(e.metaKey || (e.ctrlKey && ['l','r','w','t','n'].includes(key)))return;
+    if(relay(e,'keydown')){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }
+  },true);
+
+  window.addEventListener('keyup',e=>{
+    if(!armed||!visible())return;
+    const key=String(e.key||'').toLowerCase();
+    if(e.metaKey || (e.ctrlKey && ['l','r','w','t','n'].includes(key)))return;
+    if(relay(e,'keyup')){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }
+  },true);
+
+  window.addEventListener('blur',disarm,{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)disarm();},{passive:true});
+})();
+</script>
 </html>
 
 
