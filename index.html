@@ -48544,7 +48544,7 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
   const PACK_VERSION='1.7.2-1.8.8';
   const PACK_DB='w10-minecraft-newtextures-188-v2';
   const PACK_KEY='embedded:'+PACK_VERSION;
-  const INSTALLED_KEY='w10-minecraft-newtextures-installed-'+PACK_VERSION;
+  const INSTALLED_KEY='w10-minecraft-newtextures-installed-v3-'+PACK_VERSION;
   const PACK_B64=
     'UEsDBBQAAAAIAFsPJFxycAC3kAAAAP4AAAALAAAAcGFjay5tY21ldGF1jsEKwjAMhu99itBzKcyLYw/h0YuI1JpBsWtH2jFl7N1tu6IImkuSL/l//oUB8FHp' +
     'O+9gSXPdLr2nQcUEG7HRGwZNZozGu0RPBUKVlIeIj/zPDzhjiDAYh5pUHyEfJsIAxkEjW9ly8VFpbz1l2dVOyCtfxX97+KojUkiJUky5l7ufxk+01s9v69LP' +
@@ -72243,6 +72243,7 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
           input.files=dt.files;
           input.dispatchEvent(new cw.Event('input',{bubbles:true,cancelable:false}));
           input.dispatchEvent(new cw.Event('change',{bubbles:true,cancelable:false}));
+          try{cw.__w10NewTextures188FileFed=true;}catch(e){}
           return true;
         }catch(err){
           try{
@@ -72250,6 +72251,7 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
             // will receive the same File object through the native change path.
             Object.defineProperty(input,'files',{configurable:true,value:[nt188DecodeFile()]});
             input.dispatchEvent(new cw.Event('change',{bubbles:true}));
+            try{cw.__w10NewTextures188FileFed=true;}catch(e){}
             return true;
           }catch(_){ return false; }
         }
@@ -72330,6 +72332,7 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
       if(localStorage.getItem(INSTALLED_KEY)==='1')return;
       win.__w10NewTextures188Running=true;
       nt188PatchFileChooser(frame);
+      try{delete frame.contentWindow.__w10NewTextures188FileFed;}catch(e){}
 
       // Allow the real Eaglercraft startup/main menu to settle.
       await new Promise(r=>setTimeout(r,3000));
@@ -72365,6 +72368,9 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
       const firstAvailableY=67;
       nt188Click(frame,firstAvailableX,firstAvailableY);
       await new Promise(r=>setTimeout(r,1200));
+      if(!frame.contentWindow?.__w10NewTextures188FileFed){
+        throw new Error('Minecraft did not receive the embedded 1.8.8 resource-pack file.');
+      }
 
       // Done. The resource-pack screen applies the selected repository list
       // when it closes, which is the normal 1.8.x activation path.
@@ -72427,6 +72433,7 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
       focusGame();
       requestAnimationFrame(()=>{wireNativeChildFocus();focusGame()});
       setTimeout(()=>{wireNativeChildFocus();focusGame()},180);
+      setTimeout(()=>{try{window.__w10NewTextures188AutoInstall?.(frame,win)}catch(e){}},350);
     });
 
     /* Double-clicking the game surface is a browser-level fullscreen fallback.
@@ -72439,8 +72446,6 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
         focusGame();
       }catch(err){}
     },{passive:true});
-
-    try{window.__w10NewTextures188AutoInstall?.(frame,win)}catch(e){}
 
     frame.src=url;
     win.__w10MinecraftCleanup=()=>{
@@ -72707,7 +72712,7 @@ body.w10-minecraft-performance #windows .window:not([data-app="minecraft"]){
         win.style.setProperty('right','auto','important');
         win.style.setProperty('bottom','auto','important');
         win.style.setProperty('width','100vw','important');
-        win.style.setProperty('height','calc(100vh - 48px)','important');
+        win.style.setProperty('height','100vh','important');
         win.style.setProperty('max-width','none','important');
         win.style.setProperty('max-height','none','important');
         win.__w10MinecraftMaximizedV4=true;
@@ -72841,7 +72846,7 @@ body.w10-minecraft-performance #windows .window:not([data-app="minecraft"]){
     const w=find();
     if(!w?.__w10MinecraftMaximizedV4)return;
     w.style.setProperty('width','100vw','important');
-    w.style.setProperty('height','calc(100vh - 48px)','important');
+    w.style.setProperty('height','100vh','important');
     w.style.setProperty('left','0px','important');
     w.style.setProperty('top','0px','important');
   },{passive:true});
