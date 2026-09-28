@@ -48535,16 +48535,44 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
     const url=URL.createObjectURL(blob);
     win.__w10MinecraftBlobURL=url;
 
-    /* Keep all keyboard/pointer interaction inside the real game iframe.
-       Eaglercraft relies on a focused document plus pointer-lock permission for
-       normal WASD/mouse controls. */
+    /* Native Minecraft input only: focus the iframe's actual browsing context.
+       Never synthesize or forward keyboard events through the Windows shell. */
     const focusGame=()=>{
       try{frame.focus({preventScroll:true})}catch(e){try{frame.focus()}catch(_){} }
       try{frame.contentWindow?.focus()}catch(e){}
+      try{
+        const doc=frame.contentDocument;
+        const target=doc?.querySelector?.('canvas')||doc?.body||doc?.documentElement;
+        if(target){
+          if(target!==doc?.body && target!==doc?.documentElement && !target.hasAttribute('tabindex'))target.setAttribute('tabindex','0');
+          else if((target===doc?.body||target===doc?.documentElement) && !target.hasAttribute('tabindex'))target.setAttribute('tabindex','-1');
+          try{target.focus({preventScroll:true})}catch(e){try{target.focus()}catch(_){}}
+        }
+      }catch(e){}
     };
-    wrap.addEventListener('pointerdown',focusGame,{capture:true});
-    wrap.addEventListener('click',focusGame,{capture:true});
-    frame.addEventListener('load',()=>setTimeout(focusGame,40));
+    const wireNativeChildFocus=()=>{
+      try{
+        const doc=frame.contentDocument;
+        if(!doc||doc.__w10MinecraftNativeChildFocusV2)return;
+        doc.__w10MinecraftNativeChildFocusV2=true;
+        const childFocus=()=>{
+          try{frame.focus({preventScroll:true})}catch(e){try{frame.focus()}catch(_){} }
+          try{doc.defaultView?.focus()}catch(e){}
+        };
+        doc.addEventListener('pointerdown',childFocus,{capture:true,passive:true});
+        doc.addEventListener('mousedown',childFocus,{capture:true,passive:true});
+        doc.addEventListener('focusin',()=>{try{doc.defaultView?.focus()}catch(e){}},{capture:true,passive:true});
+        childFocus();
+      }catch(e){}
+    };
+    wrap.addEventListener('pointerdown',focusGame,{capture:true,passive:true});
+    wrap.addEventListener('click',focusGame,{capture:true,passive:true});
+    frame.addEventListener('load',()=>{
+      wireNativeChildFocus();
+      focusGame();
+      requestAnimationFrame(()=>{wireNativeChildFocus();focusGame()});
+      setTimeout(()=>{wireNativeChildFocus();focusGame()},180);
+    });
 
     /* Double-clicking the game surface is a browser-level fullscreen fallback.
        The game can still request fullscreen itself through the permission above. */
@@ -48883,28 +48911,84 @@ body.w10-minecraft-performance #windows .window:not([data-app="minecraft"]){
 </script>
 
 
-<script id="w10-minecraft-final-input-fullscreen-repair-v1">
+<script id="w10-minecraft-native-input-repair-v2">
 (()=>{
   'use strict';
-  if(window.__w10MinecraftInputFullscreenRepairV1)return;
-  window.__w10MinecraftInputFullscreenRepairV1=true;
-  const find=()=>document.querySelector('#windows .window[data-app="minecraft"]');
-  const focus=()=>{const f=find()?.querySelector('.w10-mc-game');if(!f)return;try{f.focus({preventScroll:true})}catch(e){try{f.focus()}catch(_){}};try{f.contentWindow?.focus()}catch(e){}};
-  document.addEventListener('pointerdown',e=>{const f=e.target?.closest?.('#windows .window[data-app="minecraft"] .w10-mc-game');if(f)focus()},{capture:true,passive:true});
-  window.addEventListener('resize',()=>{const w=find();if(!w||!w.__w10MinecraftMaximizedV4)return;w.style.setProperty('width','100vw','important');w.style.setProperty('height','calc(100vh - 48px)','important')},{passive:true});
-  document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement)focus()},{passive:true});
-})();
-</script>
+  if(window.__w10MinecraftNativeInputRepairV2)return;
+  window.__w10MinecraftNativeInputRepairV2=true;
 
-<script id="w10-minecraft-final-runtime-guard-v3">
-(()=>{
-  'use strict';
-  if(window.__w10MinecraftFinalRuntimeGuardV3)return;
-  window.__w10MinecraftFinalRuntimeGuardV3=true;
   const find=()=>document.querySelector('#windows .window[data-app="minecraft"]');
-  const focus=()=>{const f=find()?.querySelector('.w10-mc-game');if(!f)return;try{f.focus({preventScroll:true})}catch(e){try{f.focus()}catch(_){}};try{f.contentWindow?.focus()}catch(e){}};
-  document.addEventListener('pointerdown',e=>{if(e.target?.closest?.('#windows .window[data-app="minecraft"] .w10-mc-game-wrap'))focus()},{capture:true,passive:true});
-  window.addEventListener('resize',()=>{const w=find();if(!w?.__w10MinecraftMaximizedV4)return;w.style.setProperty('width','100vw','important');w.style.setProperty('height','calc(100vh - 48px)','important');w.style.setProperty('left','0px','important');w.style.setProperty('top','0px','important')},{passive:true});
-  document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement)focus()},{passive:true});
+  const getFrame=()=>find()?.querySelector('.w10-mc-game');
+  const focusNative=()=>{
+    const f=getFrame();
+    if(!f)return;
+    try{f.focus({preventScroll:true})}catch(e){try{f.focus()}catch(_){} }
+    try{f.contentWindow?.focus()}catch(e){}
+    try{
+      const doc=f.contentDocument;
+      const canvas=doc?.querySelector?.('canvas');
+      const target=canvas||doc?.body||doc?.documentElement;
+      if(target){
+        if(canvas&&!canvas.hasAttribute('tabindex'))canvas.setAttribute('tabindex','0');
+        else if(!canvas&&!target.hasAttribute('tabindex'))target.setAttribute('tabindex','-1');
+        try{target.focus({preventScroll:true})}catch(e){try{target.focus()}catch(_){}}
+      }
+      if(doc&&!doc.__w10MinecraftNativeInputChildV2){
+        doc.__w10MinecraftNativeInputChildV2=true;
+        const childFocus=()=>{
+          try{f.focus({preventScroll:true})}catch(e){try{f.focus()}catch(_){} }
+          try{doc.defaultView?.focus()}catch(e){}
+        };
+        doc.addEventListener('pointerdown',childFocus,{capture:true,passive:true});
+        doc.addEventListener('mousedown',childFocus,{capture:true,passive:true});
+      }
+    }catch(e){}
+  };
+
+  /* While the Minecraft iframe itself is focused, the Windows shell must not
+     run its own keyboard shortcut layer. Browser-reserved shortcuts are left
+     to the browser and are not synthesized or rewritten here. */
+  window.addEventListener('keydown',e=>{
+    const f=getFrame();
+    const active=f&&document.activeElement===f;
+    if(active)e.stopImmediatePropagation();
+  },true);
+  window.addEventListener('keyup',e=>{
+    const f=getFrame();
+    const active=f&&document.activeElement===f;
+    if(active)e.stopImmediatePropagation();
+  },true);
+
+  const wire=()=>{
+    const f=getFrame();
+    if(!f||f.__w10MinecraftNativeInputWiredV2)return;
+    f.__w10MinecraftNativeInputWiredV2=true;
+    f.addEventListener('load',()=>{
+      focusNative();
+      requestAnimationFrame(focusNative);
+      setTimeout(focusNative,180);
+    });
+    focusNative();
+  };
+
+  const w=find();
+  if(w&&!w.classList.contains('hidden'))wire();
+
+  const host=document.getElementById('windows');
+  if(host){
+    const obs=new MutationObserver(()=>{const x=find();if(x&&!x.classList.contains('hidden'))wire()});
+    obs.observe(host,{childList:true,subtree:true});
+  }
+
+  window.addEventListener('resize',()=>{
+    const w=find();
+    if(!w?.__w10MinecraftMaximizedV4)return;
+    w.style.setProperty('width','100vw','important');
+    w.style.setProperty('height','calc(100vh - 48px)','important');
+    w.style.setProperty('left','0px','important');
+    w.style.setProperty('top','0px','important');
+  },{passive:true});
+
+  document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement)focusNative()},{passive:true});
 })();
 </script>
