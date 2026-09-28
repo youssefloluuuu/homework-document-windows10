@@ -37075,30 +37075,51 @@ body.w10-ult-noanim .w10u-home-card::before,body.w10-ult-noanim .w10u-home-card:
 body.w10-ult-noanim .w10u-btn::before,body.w10-ult-noanim .w10u-btn::after,body.w10-ult-noanim .w10u-nav nav button::before,body.w10-ult-noanim .w10u-nav nav button::after,
 body.w10-ult-noanim .w10u-toggle::before,body.w10-ult-noanim .w10u-toggle::after,body.w10-ult-noanim .w10u-row::before,body.w10-ult-noanim .w10u-row::after{transition:none!important;}
 </style>
+<style id="w10-reveal-paint-localization">
+/* Performance-only hint: keep reveal pseudo-layer paint isolated to the owning surface.
+   No dimensions, colors, opacity, blur, timing, or geometry are changed. */
+.fluent-box::before,.fluent-box::after,.global-shape-box::before,.global-shape-box::after{contain:paint;}
+</style>
 
 <script id="w10-reveal-low-end-frame-budget">
 (()=>{
   'use strict';
   try{
-    const ua=navigator.userAgent||'';
-    const mem=Number(navigator.deviceMemory||0);
-    const cores=Number(navigator.hardwareConcurrency||0);
-    const lowEnd=/CrOS/i.test(ua) && ((mem&&mem<=4)||(cores&&cores<=4));
-    const clocks=new Map();
-    window.__w10RevealFrameGate={allow(key,x,y){
-      if(window.__w10BackgroundThrottle)return false;
-      if(!lowEnd)return true;
-      const now=performance.now();
-      let s=clocks.get(key);
-      if(!s){clocks.set(key,{t:now,x,y});return true;}
-      const dx=x-s.x,dy=y-s.y;
-      const fast=(dx*dx+dy*dy)>1600;
-      const minGap=fast?24:18;
-      if(now-s.t<minGap)return false;
-      s.t=now;s.x=x;s.y=y;
-      return true;
-    }};
+    /* The reveal runtimes already coalesce work through requestAnimationFrame.
+       Do not add a 18–24ms cursor throttle on top of that: fast pointer motion
+       should always be allowed to publish the newest position for the next frame. */
+    window.__w10RevealFrameGate={allow(){return !window.__w10BackgroundThrottle;}};
   }catch(e){ window.__w10RevealFrameGate={allow:()=>true}; }
+})();
+</script>
+<script id="w10-reveal-pointer-coalescer-v1">
+(()=>{
+  'use strict';
+  if(window.__w10RevealRafBind)return;
+  /* Keep the same pointer position visually; only collapse bursts of pointer events
+     into the next paint. This changes scheduling, not the reveal math or styling. */
+  window.__w10RevealRafBind=(el,paint)=>{
+    if(!el||typeof paint!=='function')return;
+    let raf=0,x=0,y=0,active=true;
+    const move=e=>{
+      if(window.__w10BackgroundThrottle)return;
+      x=e.clientX; y=e.clientY;
+      if(raf)return;
+      raf=requestAnimationFrame(()=>{
+        raf=0;
+        if(!active||!el.isConnected)return;
+        paint({clientX:x,clientY:y});
+      });
+    };
+    const leave=()=>{
+      active=false;
+      if(raf){cancelAnimationFrame(raf);raf=0;}
+    };
+    const enter=()=>{active=true};
+    el.addEventListener('pointermove',move,{passive:true});
+    el.addEventListener('pointerleave',leave,{passive:true});
+    el.addEventListener('pointerenter',enter,{passive:true});
+  };
 })();
 </script>
 <script id="v88-ultimate-reveal-runtime">
@@ -37112,10 +37133,31 @@ body.w10-ult-noanim .w10u-toggle::before,body.w10-ult-noanim .w10u-toggle::after
     if(typeof refreshScopedTargets==='function')refreshScopedTargets();
   };
   let touched=[],raf=0,lastX=0,lastY=0,scopedTargets=[],scopedWindow=null;
+  const v88GridSize=220;
+  let v88Grid=new Map();
+  const v88Cell=(n)=>Math.floor(n/v88GridSize);
+  const rebuildV88Grid=()=>{
+    const next=new Map();
+    for(const el of targetCache){
+      const r=rectOf(el);
+      if(!r||!r.width||!r.height)continue;
+      const x0=v88Cell(r.left),x1=v88Cell(r.right),y0=v88Cell(r.top),y1=v88Cell(r.bottom);
+      for(let gx=x0;gx<=x1;gx++){
+        for(let gy=y0;gy<=y1;gy++){
+          const k=gx+'|'+gy;
+          let a=next.get(k);
+          if(!a)next.set(k,a=[]);
+          a.push(el);
+        }
+      }
+    }
+    v88Grid=next;
+  };
   const refreshScopedTargets=()=>{
     scopedTargets=scopedWindow
       ? targetCache.filter(el=>el.closest('.window:not(.hidden)')===scopedWindow)
       : targetCache.filter(el=>!el.closest('.window:not(.hidden)'));
+    rebuildV88Grid();
   };
   refreshTargets();
   scopedWindow=null;
@@ -37157,17 +37199,27 @@ body.w10-ult-noanim .w10u-toggle::before,body.w10-ult-noanim .w10u-toggle::after
     raf=0;
     if(window.__w10BackgroundThrottle)return;
     const zone=110;
-    const keep=[];
-    for(const el of scopedTargets){
-      const r=rectOf(el);
-      if(!r)continue;
-      const expanded={left:r.left-zone,right:r.right+zone,top:r.top-zone,bottom:r.bottom+zone};
-      if(x<expanded.left||x>expanded.right||y<expanded.top||y>expanded.bottom){
-        if(el.classList.contains('v86-rv'))clear(el);
-        continue;
+    const seen=new Set(),keep=[];
+    const x0=v88Cell(x-zone),x1=v88Cell(x+zone),y0=v88Cell(y-zone),y1=v88Cell(y+zone);
+    for(let gx=x0;gx<=x1;gx++){
+      for(let gy=y0;gy<=y1;gy++){
+        const bucket=v88Grid.get(gx+'|'+gy);
+        if(!bucket)continue;
+        for(const el of bucket){
+          if(seen.has(el))continue;
+          seen.add(el);
+          if(scopedWindow){if(el.closest('.window:not(.hidden)')!==scopedWindow)continue;}
+          else if(el.closest('.window:not(.hidden)'))continue;
+          const r=rectOf(el);
+          if(!r)continue;
+          const expandedLeft=r.left-zone,expandedRight=r.right+zone,expandedTop=r.top-zone,expandedBottom=r.bottom+zone;
+          if(x<expandedLeft||x>expandedRight||y<expandedTop||y>expandedBottom)continue;
+          if(render(el,x,y,zone))keep.push(el);
+        }
       }
-      if(render(el,x,y,zone))keep.push(el);
     }
+    const next=new Set(keep);
+    touched.forEach(el=>{if(!next.has(el))clear(el)});
     touched=keep;
   }
   document.addEventListener('pointermove',e=>{
@@ -37512,12 +37564,33 @@ body.w10-ult-noanim .fluent-box::before,body.w10-ult-noanim .fluent-box::after{t
   let fluentScopedTargets=[];
   const fluentGeomCache=new WeakMap();
   let fluentGeomDirty=true;
+  const fluentGridSize=220;
+  let fluentSpatialGrid=new Map();
+  const fluentCell=n=>Math.floor(n/fluentGridSize);
+  const rebuildFluentSpatialGrid=()=>{
+    const next=new Map();
+    for(const el of fluentTargetCache){
+      const q=el.getBoundingClientRect();
+      if(!q.width||!q.height)continue;
+      const x0=fluentCell(q.left),x1=fluentCell(q.right),y0=fluentCell(q.top),y1=fluentCell(q.bottom);
+      for(let gx=x0;gx<=x1;gx++){
+        for(let gy=y0;gy<=y1;gy++){
+          const k=gx+'|'+gy;
+          let a=next.get(k);
+          if(!a)next.set(k,a=[]);
+          a.push(el);
+        }
+      }
+    }
+    fluentSpatialGrid=next;
+  };
   const refreshFluentTargets=()=>{
     fluentTargetCache=Array.from(document.querySelectorAll(selector)).filter(el=>!el.closest(settingsRootSel)&&!el.closest('.window.hidden'));
     fluentScopedTargets=hoverWindow
       ? fluentTargetCache.filter(el=>el.closest('.window:not(.hidden)')===hoverWindow)
       : fluentTargetCache.filter(el=>!el.closest('.window:not(.hidden)'));
     fluentGeomDirty=true;
+    rebuildFluentSpatialGrid();
   };
   const invalidateFluentGeometry=()=>{fluentGeomDirty=true;};
   window.__w10RevealInvalidate=invalidateFluentGeometry;
@@ -37593,19 +37666,28 @@ body.w10-ult-noanim .fluent-box::before,body.w10-ult-noanim .fluent-box::after{t
     raf=0;
     if(body.classList.contains('w10-noanim')||body.classList.contains('w10-ult-noanim')||window.__w10RevealDragActive)return;
     const scopeWindow=hoverWindow;
-    const next=new Set();
-    fluentScopedTargets.forEach(el=>{
-      const elWindow=el.closest('.window:not(.hidden)');
-      if(scopeWindow ? elWindow!==scopeWindow : elWindow) { if(el.classList.contains('v86-rv'))clear(el); return; }
-      if(el.matches('.w10-clean-tile,.w10u-home-card,.w10u-app'))return;
-      if(el.closest(compactParentSel)){if(el.classList.contains('v86-rv'))clear(el);return;}
-      if(el.closest(spaciousParentSel)){if(el.classList.contains('v86-rv'))clear(el);return;}
-      const r=getFluentRect(el);
-      if(!r||r.width<120||r.height<64||(r.width*r.height)<8000){if(el.classList.contains('v86-rv'))clear(el);return;}
-      const expanded={left:r.left-zone,right:r.right+zone,top:r.top-zone,bottom:r.bottom+zone};
-      if(lastX<expanded.left||lastX>expanded.right||lastY<expanded.top||lastY>expanded.bottom){if(el.classList.contains('v86-rv'))clear(el);return;}
-      if(render(el,lastX,lastY))next.add(el);
-    });
+    const next=new Set(),seen=new Set();
+    const x0=fluentCell(lastX-zone),x1=fluentCell(lastX+zone),y0=fluentCell(lastY-zone),y1=fluentCell(lastY+zone);
+    for(let gx=x0;gx<=x1;gx++){
+      for(let gy=y0;gy<=y1;gy++){
+        const bucket=fluentSpatialGrid.get(gx+'|'+gy);
+        if(!bucket)continue;
+        for(const el of bucket){
+          if(seen.has(el))continue;
+          seen.add(el);
+          const elWindow=el.closest('.window:not(.hidden)');
+          if(scopeWindow ? elWindow!==scopeWindow : elWindow)continue;
+          if(el.matches('.w10-clean-tile,.w10u-home-card,.w10u-app'))continue;
+          if(el.closest(compactParentSel))continue;
+          if(el.closest(spaciousParentSel))continue;
+          const r=getFluentRect(el);
+          if(!r||r.width<120||r.height<64||(r.width*r.height)<8000)continue;
+          const expandedLeft=r.left-zone,expandedRight=r.right+zone,expandedTop=r.top-zone,expandedBottom=r.bottom+zone;
+          if(lastX<expandedLeft||lastX>expandedRight||lastY<expandedTop||lastY>expandedBottom)continue;
+          if(render(el,lastX,lastY))next.add(el);
+        }
+      }
+    }
     active.forEach(el=>{if(!next.has(el))clear(el);});
     active=next;
     fluentGeomDirty=false;
@@ -37730,6 +37812,10 @@ body.w10-ult-noanim .fluent-box::before,body.w10-ult-noanim .fluent-box::after{t
       if(!el.classList.contains('fluent-box'))el.classList.add('fluent-box');
       const r={left:pr.left+g.left,top:pr.top+g.top,width:g.width,height:g.height};
       if(!r.width||!r.height){clear(el);return;}
+      if(e.clientX<r.left-150||e.clientX>r.left+r.width+150||e.clientY<r.top-150||e.clientY>r.top+r.height+150){
+        if(prev.has(el))clear(el);
+        return;
+      }
       const lx=e.clientX-r.left, ly=e.clientY-r.top;
       const rx=(lx/r.width)*100, ry=(ly/r.height)*100;
       const dxLeft=Math.max(0,-lx), dxRight=Math.max(0,lx-r.width);
@@ -37791,6 +37877,10 @@ body.w10-ult-noanim .fluent-box::before,body.w10-ult-noanim .fluent-box::after{t
       if(!el.classList.contains('fluent-box'))el.classList.add('fluent-box');
       const r={left:pr.left+g.left,top:pr.top+g.top,width:g.width,height:g.height};
       if(!r.width||!r.height){clear(el);return;}
+      if(e.clientX<r.left-150||e.clientX>r.left+r.width+150||e.clientY<r.top-150||e.clientY>r.top+r.height+150){
+        if(prev.has(el))clear(el);
+        return;
+      }
       const lx=e.clientX-r.left,ly=e.clientY-r.top;
       const rx=(lx/r.width)*100,ry=(ly/r.height)*100;
       const dxLeft=Math.max(0,-lx),dxRight=Math.max(0,lx-r.width);
@@ -38051,8 +38141,13 @@ body.w10-ult-noanim .fluent-box::before,body.w10-ult-noanim .fluent-box::after{t
       parent.style.setProperty('--left-mouse-y',localY.toFixed(2)+'px');
       state.rows.forEach(g=>{
         const row=g.row;
-        const lx=mx-(pr.left+g.left);
-        const ly=my-(pr.top+g.top);
+        const rowLeft=pr.left+g.left,rowTop=pr.top+g.top;
+        if(mx<rowLeft-zone||mx>rowLeft+g.width+zone||my<rowTop-zone||my>rowTop+g.height+zone){
+          if(row.classList.contains('left-reveal-active'))clear(row);
+          return;
+        }
+        const lx=mx-rowLeft;
+        const ly=my-rowTop;
         const rx=(lx/g.width)*100;
         const ry=(ly/g.height)*100;
         const xEdge=Math.max(0,Math.min(g.width,lx));
@@ -38203,7 +38298,9 @@ body.w10-ult-noanim .fluent-box::before,body.w10-ult-noanim .fluent-box::after{t
     });
   };
   const pickParent=e=>{
-    let n=e.target instanceof Element?e.target:null;
+    const target=e.target instanceof Element?e.target:null;
+    if(lastParent&&target&&lastParent.contains(target))return lastParent;
+    let n=target;
     while(n&&n!==body){
       if(parents.has(n))return n;
       n=n.parentElement;
@@ -41338,7 +41435,7 @@ setTimeout(addLauncher,250);setTimeout(addLauncher,1200);
   function addReveal(){
     if(!panel)return;
     const els=panel.querySelectorAll('.w10-srv2-row,.w10-srv2-hero,.w10-srv2-image-card');
-    els.forEach(el=>{el.classList.add('fluent-box');el.addEventListener('pointermove',e=>{const r=el.getBoundingClientRect();el.style.setProperty('--v86-rx',Math.max(0,Math.min(100,((e.clientX-r.left)/Math.max(1,r.width))*100))+'%');el.style.setProperty('--v86-ry',Math.max(0,Math.min(100,((e.clientY-r.top)/Math.max(1,r.height))*100))+'%')},{passive:true})});
+    els.forEach(el=>{el.classList.add('fluent-box');window.__w10RevealRafBind(el,e=>{const r=el.getBoundingClientRect();el.style.setProperty('--v86-rx',Math.max(0,Math.min(100,((e.clientX-r.left)/Math.max(1,r.width))*100))+'%');el.style.setProperty('--v86-ry',Math.max(0,Math.min(100,((e.clientY-r.top)/Math.max(1,r.height))*100))+'%')})});
   }
 
   function render(){
@@ -46286,7 +46383,7 @@ const desktop=document.getElementById('desktop');
     const src=asset(id);
     row.innerHTML=(src?`<img class="w10-v29-result-icon" src="${esc(src)}" alt="" draggable="false">`:'<span class="w10-v29-result-icon"></span>')+
       `<span class="w10-v29-result-copy"><strong>${esc(detail.title)}</strong><small>${esc(detail.sub||type)}</small></span>${type==='web'?'<span class="w10-v29-web-pill">WEB</span>':''}`;
-    row.addEventListener('pointermove',e=>{const r=row.getBoundingClientRect();row.style.setProperty('--v29-rx',((e.clientX-r.left)/Math.max(1,r.width)*100)+'%');row.style.setProperty('--v29-ry',((e.clientY-r.top)/Math.max(1,r.height)*100)+'%')},{passive:true});
+    window.__w10RevealRafBind(row,e=>{const r=row.getBoundingClientRect();row.style.setProperty('--v29-rx',((e.clientX-r.left)/Math.max(1,r.width)*100)+'%');row.style.setProperty('--v29-ry',((e.clientY-r.top)/Math.max(1,r.height)*100)+'%')});
     row.onclick=e=>{e.preventDefault();e.stopPropagation();onclick?.()};return row;
   }
 
@@ -46540,7 +46637,7 @@ const desktop=document.getElementById('desktop');
   }
   function openApp(id){closePanel();restoreStartSurface();try{window.openAppSafe?.(id)||window.openApp?.(id)}catch(e){}}
   function iconHTML(id,cls='w10-fsp-icon'){const u=asset(id);return u?`<img class="${cls}" src="${esc(u)}" alt="" draggable="false">`:`<span class="${cls}" style="display:grid;place-items:center;color:#cfe8ff;font-size:18px">◫</span>`}
-  function reveal(row){row.addEventListener('pointermove',e=>{const r=row.getBoundingClientRect();row.style.setProperty('--fsp-x',Math.max(0,Math.min(100,((e.clientX-r.left)/Math.max(1,r.width))*100))+'%');row.style.setProperty('--fsp-y',Math.max(0,Math.min(100,((e.clientY-r.top)/Math.max(1,r.height))*100))+'%')},{passive:true})}
+  function reveal(row){window.__w10RevealRafBind(row,e=>{const r=row.getBoundingClientRect();row.style.setProperty('--fsp-x',Math.max(0,Math.min(100,((e.clientX-r.left)/Math.max(1,r.width))*100))+'%');row.style.setProperty('--fsp-y',Math.max(0,Math.min(100,((e.clientY-r.top)/Math.max(1,r.height))*100))+'%')})}
   function create(){
     if(panel?.isConnected)return panel;
     panel=document.createElement('section');panel.id='w10-final-search-side-panel';panel.setAttribute('aria-hidden','true');
@@ -46766,7 +46863,7 @@ const desktop=document.getElementById('desktop');
   let currentQuery='';
   const syncTaskbar=q=>{if(taskbar.value!==q)taskbar.value=q};
   const iconHTML=(id,cls='w10-fsp-icon')=>{const u=asset(id);return u?`<img class="${cls}" src="${esc(u)}" alt="" draggable="false">`:`<span class="${cls}" style="display:grid;place-items:center;color:#cfe8ff;font-size:18px">◫</span>`};
-  const reveal=row=>row.addEventListener('pointermove',e=>{const r=row.getBoundingClientRect();row.style.setProperty('--fsp-x',Math.max(0,Math.min(100,(e.clientX-r.left)/Math.max(1,r.width)*100))+'%');row.style.setProperty('--fsp-y',Math.max(0,Math.min(100,(e.clientY-r.top)/Math.max(1,r.height)*100))+'%')},{passive:true});
+  const reveal=row=>window.__w10RevealRafBind(row,e=>{const r=row.getBoundingClientRect();row.style.setProperty('--fsp-x',Math.max(0,Math.min(100,(e.clientX-r.left)/Math.max(1,r.width)*100))+'%');row.style.setProperty('--fsp-y',Math.max(0,Math.min(100,(e.clientY-r.top)/Math.max(1,r.height)*100))+'%')});
   const resultRow=(id,title,sub,fn,active=false)=>{const r=document.createElement('button');r.type='button';r.className='w10-fsp-row'+(active?' active':'');r.innerHTML=iconHTML(id)+`<span class="w10-fsp-copy"><strong>${esc(title)}</strong><small>${esc(sub)}</small></span><span class="w10-fsp-arrow">›</span>`;r.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();fn()});reveal(r);return r};
 
   function render(q){
@@ -47274,7 +47371,7 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
   function reveal(el){
     if(!el||el.dataset.w10RevealV4==='1')return;
     el.dataset.w10RevealV4='1';
-    el.addEventListener('pointermove',e=>{const r=el.getBoundingClientRect();el.style.setProperty('--w10sp-rx',clamp(((e.clientX-r.left)/Math.max(1,r.width))*100)+'%');el.style.setProperty('--w10sp-ry',clamp(((e.clientY-r.top)/Math.max(1,r.height))*100)+'%')},{passive:true});
+    window.__w10RevealRafBind(el,e=>{const r=el.getBoundingClientRect();el.style.setProperty('--w10sp-rx',clamp(((e.clientX-r.left)/Math.max(1,r.width))*100)+'%');el.style.setProperty('--w10sp-ry',clamp(((e.clientY-r.top)/Math.max(1,r.height))*100)+'%')});
   }
   function addReveal(){panel?.querySelectorAll('.w10sp-card,.w10sp-hero,.w10sp-list-row,.w10sp-image-card,.w10sp-related,.w10sp-news-card,.w10sp-app-detail,.w10sp-doc-card,.w10sp-open-btn').forEach(reveal)}
 
@@ -47706,7 +47803,7 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
     left.innerHTML='';
     const apps=appMatches(q), ex=exactApp(q), fs=localDocuments(q);
     const addSection=t=>{const d=document.createElement('div');d.className='w10gs-section';d.textContent=t;left.appendChild(d)};
-    const addResult=(title,sub,id,fn,imgUrl='')=>{const b=document.createElement('button');b.type='button';b.className='w10gs-result';b.innerHTML=imgUrl?`<img class="w10gs-icon" src="${esc(imgUrl)}" alt="">`+`<span class="w10gs-copy"><strong>${esc(title)}</strong><small>${esc(sub)}</small></span><span class="w10gs-arrow">›</span>`:iconHtml(id)+`<span class="w10gs-copy"><strong>${esc(title)}</strong><small>${esc(sub)}</small></span><span class="w10gs-arrow">›</span>`;b.addEventListener('pointermove',e=>{const r=b.getBoundingClientRect();b.style.setProperty('--gsx',((e.clientX-r.left)/Math.max(1,r.width)*100)+'%');b.style.setProperty('--gsy',((e.clientY-r.top)/Math.max(1,r.height)*100)+'%')},{passive:true});b.onclick=e=>{e.preventDefault();e.stopPropagation();fn()};left.appendChild(b)};
+    const addResult=(title,sub,id,fn,imgUrl='')=>{const b=document.createElement('button');b.type='button';b.className='w10gs-result';b.innerHTML=imgUrl?`<img class="w10gs-icon" src="${esc(imgUrl)}" alt="">`+`<span class="w10gs-copy"><strong>${esc(title)}</strong><small>${esc(sub)}</small></span><span class="w10gs-arrow">›</span>`:iconHtml(id)+`<span class="w10gs-copy"><strong>${esc(title)}</strong><small>${esc(sub)}</small></span><span class="w10gs-arrow">›</span>`;window.__w10RevealRafBind(b,e=>{const r=b.getBoundingClientRect();b.style.setProperty('--gsx',((e.clientX-r.left)/Math.max(1,r.width)*100)+'%');b.style.setProperty('--gsy',((e.clientY-r.top)/Math.max(1,r.height)*100)+'%')});b.onclick=e=>{e.preventDefault();e.stopPropagation();fn()};left.appendChild(b)};
     if(!q){addSection('Quick access');['Settings','Microsoft Edge','Paint','Task Manager'].forEach(n=>{const id=exactApp(n);if(id)addResult(label(id),'Installed app',id,()=>openApp(id))});if(!left.children.length)left.innerHTML='<div class="w10gs-blank">Start typing to search this PC and the web.</div>';return {apps,ex,fs}};
     addSection('Best match');
     if(ex)addResult(label(ex),'App · installed in this simulator',ex,()=>openApp(ex));
@@ -47747,7 +47844,7 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
       const app=(f?.openApp)||(f?.source)||(['txt','md','log','rtf'].includes(ext)?'notepad':(ext==='pdf'?'edge':'explorer'));
       c.innerHTML=`<div class="w10gs-web-head">${iconHtml(app)}<div class="w10gs-web-text"><div class="w10gs-web-title">${esc(f?.name||'Untitled')}</div><div class="w10gs-web-domain">Document · This PC</div></div></div>`;
       c.onclick=()=>openApp(app);
-      c.addEventListener('pointermove',e=>{const r=c.getBoundingClientRect();c.style.setProperty('--gsx',((e.clientX-r.left)/Math.max(1,r.width)*100)+'%');c.style.setProperty('--gsy',((e.clientY-r.top)/Math.max(1,r.height)*100)+'%')},{passive:true});
+      window.__w10RevealRafBind(c,e=>{const r=c.getBoundingClientRect();c.style.setProperty('--gsx',((e.clientX-r.left)/Math.max(1,r.width)*100)+'%');c.style.setProperty('--gsy',((e.clientY-r.top)/Math.max(1,r.height)*100)+'%')});
       return c;
     };
     const onlineCard=(r)=>{
@@ -47757,7 +47854,7 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
       c.innerHTML=`${thumb?`<img class="w10gs-web-thumb" src="${esc(thumb)}" alt="" loading="lazy">`:''}<div class="w10gs-web-head"><span class="w10gs-web-favicon"></span><div class="w10gs-web-text"><div class="w10gs-web-title">${esc(r?.title||'Untitled')}</div><div class="w10gs-web-domain">${esc(r?.domain||domain(r?.url))} · Online document</div><div class="w10gs-web-desc">${esc(r?.description||'')}</div></div></div>`;
       c.onclick=()=>openResult(r);
       c.querySelector('.w10gs-web-thumb')?.addEventListener('error',e=>e.currentTarget.remove());
-      c.addEventListener('pointermove',e=>{const box=c.getBoundingClientRect();c.style.setProperty('--gsx',((e.clientX-box.left)/Math.max(1,box.width)*100)+'%');c.style.setProperty('--gsy',((e.clientY-box.top)/Math.max(1,box.height)*100)+'%')},{passive:true});
+      window.__w10RevealRafBind(c,e=>{const box=c.getBoundingClientRect();c.style.setProperty('--gsx',((e.clientX-box.left)/Math.max(1,box.width)*100)+'%');c.style.setProperty('--gsy',((e.clientY-box.top)/Math.max(1,box.height)*100)+'%')});
       return c;
     };
     if(local.length){section('On this PC');local.slice(0,7).forEach(f=>wrap.appendChild(docCard(f)))}
@@ -48320,7 +48417,7 @@ body.w10-noanim #w10-search-pro-panel *{transition:none!important;animation:none
       }
     });
     const decompressed=compressedStream.pipeThrough(new DecompressionStream('gzip'));
-    const blob=await new Response(decompressed).blob();
+    const blob=await new Response(decompressed,{headers:{'Content-Type':'text/html;charset=utf-8'}}).blob();
     progress(1,'Starting Minecraft…');
     return blob;
   }
